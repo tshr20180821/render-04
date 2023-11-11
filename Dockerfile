@@ -63,7 +63,7 @@ RUN dpkg -l \
   zlib1g-dev \
  && MAKEFLAGS="-j $(nproc)" pecl install apcu >/dev/null \
  && docker-php-ext-enable apcu \
- && MAKEFLAGS="-j $(nproc)" pecl install memcached --enable-memcached-sasl \
+ && MAKEFLAGS="-j $(nproc)" pecl install memcached --enable-memcached-sasl >/dev/null \
  && docker-php-ext-enable memcached \
  && docker-php-ext-configure zip --with-zip >/dev/null \
  && docker-php-ext-install -j$(nproc) \
