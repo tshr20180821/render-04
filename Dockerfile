@@ -25,11 +25,13 @@ ENV SQLITE_JDBC_VERSION="3.43.2.2"
 # default-jre-headless : java
 # libmemcached-dev : pecl memcached
 # libonig-dev : mbstring
+# libsasl2-modules : sasl
 # libsqlite3-0 : php sqlite
 # libssl-dev : pecl memcached
 # libzip-dev : docker-php-ext-configure zip --with-zip
 # memcached : memcached
 # nodejs : nodejs
+# sasl2-bin : sasl
 # tzdata : ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
 # zlib1g-dev : pecl memcached
 RUN dpkg -l \
