@@ -141,7 +141,7 @@ __HEREDOC__;
             $options += [CURLOPT_HTTPHEADER => unserialize(base64_decode($headers))];
         }
         if (strlen($authentication) > 0) {
-            $options += [CURLOPT_USERPWD => base64_encode($authentication)];
+            $options += [CURLOPT_USERPWD => $authentication];
         }
         
         if ($method == 'POST') {
@@ -340,9 +340,6 @@ function get_contents_multi($urls_, $multi_options_ = null)
         //     unset($options[CURLOPT_USERAGENT]);
         // }
         foreach ($options as $key => $value) {
-            if ($key == CURLOPT_USERPWD) {
-                $value = base64_decode($value);
-            }
             $rc = curl_setopt($ch, $key, $value);
             if ($rc == false) {
                 $log->info("curl_setopt : {$key} {$value}");
