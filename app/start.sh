@@ -20,18 +20,19 @@ export PROCESSOR_NAME=$(cat /proc/cpuinfo | grep "model name" | head -n 1 | cut 
 # npm audit
 npm list --depth=0
 
-export SASL_PASSWORD=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 64 | head -n 1)
+# memcached sasl
 useradd memcached -G sasl
+export SASL_PASSWORD=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 64 | head -n 1)
 echo ${SASL_PASSWORD} | saslpasswd2 -p -a memcached -c memcached
 chown memcached:memcached /etc/sasldb2
 # sasldblistusers2
 export SASL_CONF_PATH=/tmp/memcached.conf
-echo "mech_list: plain cram-md5" >/tmp/memcached.conf
-# /usr/sbin/saslauthd -a sasldb -V
+echo "mech_list: plain cram-md5" >${SASL_CONF_PATH}
 /usr/sbin/saslauthd -a sasldb -n 2 -V
 /usr/bin/memcached -S -v -B binary -d -u memcached
 testsaslauthd -u memcached -p ${SASL_PASSWORD}
 
+# memjs
 export MEMCACHIER_SERVERS=127.0.0.1:11211
 export MEMCACHIER_USERNAME=memcached
 export MEMCACHIER_PASSWORD=${SASL_PASSWORD}
