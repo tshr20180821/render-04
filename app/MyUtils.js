@@ -60,7 +60,7 @@ class MyLog {
                 request.write(datetime + ' ' + log_header + ' ' + message_);
                 request.end();
             } catch (err) {
-                console.log(err);
+                console.warn(err.stack);
             }
             resolve();
         });
@@ -97,7 +97,7 @@ module.exports.send_slack_message = function (message_) {
                 sleep_ms(1000);
             });
         } catch (err) {
-            console.log(err);
+            console.warn(err.stack);
         }
         resolve();
     });
@@ -137,7 +137,7 @@ module.exports.send_mail = function (subject_, body_) {
         const smtp = require('nodemailer').createTransport(smtp_options);
         const result = await smtp.sendMail(mail, function (err, info) {
             if (err) {
-                logger.warn(err.toString());
+                logger.warn(err.stack);
             } else {
                 logger.info(info.messageId);
             }
