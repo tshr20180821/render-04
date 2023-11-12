@@ -347,6 +347,9 @@ function get_contents_multi($urls_, $multi_options_ = null)
         }
         if (is_null($options_add) === false) {
             foreach ($options_add as $key => $value) {
+                if ($key == CURLOPT_USERPWD) {
+                    $value = base64_decode($value);
+                }
                 $rc = curl_setopt($ch, $key, $value);
                 if ($rc == false) {
                     $log->info("curl_setopt : {$key} {$value}");
