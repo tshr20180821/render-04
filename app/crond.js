@@ -5,7 +5,7 @@ const logger = mu.get_logger();
 
 const https = require("https");
 const url = 'https://' + process.env.RENDER_EXTERNAL_HOSTNAME + '/auth/crond.php';
-const fs = require('fs');
+// const fs = require('fs');
 const {
     execSync
 } = require('child_process');
@@ -18,17 +18,6 @@ try {
         '0 * * * * *',
         function () {
             logger.info('START');
-            try {
-                mc.get('TEST', function (err, val) {
-                    console.log('CHECK POINT 010');
-                    console.log(val);
-                    console.log('CHECK POINT 020');
-                    console.log(err);
-                    console.log('CHECK POINT 030');
-                });
-            } catch (err) {
-                console.log('memjs : ' . err.toString());
-            }
 
             try {
                 var http_options = {
@@ -91,16 +80,34 @@ try {
 function check_package_update() {
     new Promise((resolve) => {
         try {
+            mc.get('CHECK_APT', function (err, val) {
+                if (val == null) {
+                    mc.set('CHECK_APT', 'dummy', {
+                        expires: 10 * 60
+                    }, function (err, rc) {
+                        logger.info('memcached set : ' + rc);
+                    });
+                    var stdout = execSync('apt-get -q update');
+                    logger.info(stdout.toString());
+                    stdout = execSync('apt-get -s upgrade | grep upgraded');
+                    logger.info(stdout.toString());
+                    const dt = new Date();
+                    const datetime = dt.getFullYear() + '-' + ('0' + (dt.getMonth() + 1)).slice(-2) + '-' + ('0' + dt.getDate()).slice(-2) + ' ' +
+                        ('0' + dt.getHours()).slice(-2) + ':' + ('0' + dt.getMinutes()).slice(-2);
+                    mc.set('CHECK_APT', datetime + ' ' + stdout.toString(), {
+                        expires: 24 * 60 * 60
+                    }, function (err, rc) {
+                        logger.info('memcached set : ' + rc);
+                    });
+                }
+            });
+
+            /*
             const check_apt_file = '/tmp/CHECK_APT';
             if (!fs.existsSync(check_apt_file)) {
                 const fd = fs.openSync(check_apt_file, 'w', 0o666);
                 fs.writeSync(fd, 'uchecked');
                 fs.closeSync(fd);
-                mc.set('CHECK_APT', 'uchecked', {
-                    expires: 0
-                }, function (err, val) {
-                    logger.info('memcached set : ' + val);
-                });
             }
             logger.info('CHECK APT FILE UPDATE TIME : ' + fs.statSync(check_apt_file).mtime);
             if (((new Date()).getTime() - fs.statSync(check_apt_file).mtimeMs) > 24 * 60 * 60 * 1000) {
@@ -111,14 +118,10 @@ function check_package_update() {
                 const fd = fs.openSync(check_apt_file, 'w');
                 fs.writeSync(fd, stdout.toString());
                 fs.closeSync(fd);
-                mc.set('CHECK_APT', stdout.toString(), {
-                    expires: 0
-                }, function (err, val) {
-                    logger.info('memcached set : ' + val);
-                });
             }
+            */
         } catch (err) {
-            console.log(err.toString());
+            logger.warn(err.toString());
         }
         resolve();
     });
