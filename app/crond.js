@@ -88,7 +88,7 @@ function check_package_update() {
                         logger.info('memcached set : ' + rc);
                     });
                     var stdout = execSync('apt-get -q update');
-                    logger.info(stdout.toString());
+                    // logger.info(stdout.toString());
                     stdout = execSync('apt-get -s upgrade | grep upgraded');
                     logger.info(stdout.toString());
                     const dt = new Date();
