@@ -85,21 +85,23 @@ function check_package_update() {
                     mc.set('CHECK_APT', 'dummy', {
                         expires: 10 * 60
                     }, function (err2, rc) {
-                        logger.info('memcached set : ' + rc);
+                        // logger.info('memcached set : ' + rc);
+                        console.warn(rc);
                     });
                     var stdout = execSync('apt-get update');
                     // logger.info(stdout.toString());
-                    console.log(stdout.toString());
+                    console.warn(stdout.toString());
                     stdout = execSync('apt-get -s upgrade | grep upgraded');
                     // logger.info(stdout.toString());
-                    console.log(stdout.toString());
+                    console.warn(stdout.toString());
                     const dt = new Date();
                     const datetime = dt.getFullYear() + '-' + ('0' + (dt.getMonth() + 1)).slice(-2) + '-' + ('0' + dt.getDate()).slice(-2) + ' ' +
                         ('0' + dt.getHours()).slice(-2) + ':' + ('0' + dt.getMinutes()).slice(-2);
                     mc.set('CHECK_APT', datetime + ' ' + stdout.toString(), {
                         expires: 24 * 60 * 60
                     }, function (err2, rc) {
-                        logger.info('memcached set : ' + rc);
+                        // logger.info('memcached set : ' + rc);
+                        console.warn(rc);
                     });
                 }
             });
