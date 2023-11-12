@@ -60,7 +60,7 @@ class MyLog {
                 request.write(datetime + ' ' + log_header + ' ' + message_);
                 request.end();
             } catch (err) {
-                console.log(err.toString());
+                console.log(err);
             }
             resolve();
         });
@@ -97,7 +97,7 @@ module.exports.send_slack_message = function (message_) {
                 sleep_ms(1000);
             });
         } catch (err) {
-            console.log(err.toString());
+            console.log(err);
         }
         resolve();
     });
