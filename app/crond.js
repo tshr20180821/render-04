@@ -19,12 +19,18 @@ try {
         function () {
             logger.info('START');
             try {
+                logger.info('CHECK POINT 010');
                 mc.set('TEST', 'dummy', {
                     expires: 0
-                }, function (err, val) {});
+                }, function (err, val) {
+                    console.log(err);
+                });
+                logger.info('CHECK POINT 020');
                 mc.get('TEST', function (err, val) {
                     console.log(val);
+                    console.log(err);
                 })
+                logger.info('CHECK POINT 030');
             } catch (err) {
                 console.log('memjs : ' . err.toString());
             }
