@@ -9,13 +9,16 @@ const fs = require('fs');
 const {
     execSync
 } = require('child_process');
+const mc = (require('memjs')).Client.create()
 
 const CronJob = require('cron').CronJob;
+
 try {
     const job = new CronJob(
         '0 * * * * *',
         function () {
             logger.info('START');
+            mc.set('TEST', 'dummy');
 
             try {
                 var http_options = {
@@ -77,22 +80,28 @@ try {
 
 function check_package_update() {
     new Promise((resolve) => {
-        const check_apt_file = '/tmp/CHECK_APT';
-        if (!fs.existsSync(check_apt_file)) {
-            const fd = fs.openSync(check_apt_file, 'w');
-            fs.writeSync(fd, 'uchecked');
-            fs.closeSync(fd);
-            execSync('chmod 666 ' + check_apt_file);
+        try {
+            const check_apt_file = '/tmp/CHECK_APT';
+            if (!fs.existsSync(check_apt_file)) {
+                const fd = fs.openSync(check_apt_file, 'w', 0o666);
+                fs.writeSync(fd, 'uchecked');
+                fs.closeSync(fd);
+                mc.set('CHECK_APT', 'uchecked');
+            }
+            logger.info('CHECK APT FILE UPDATE TIME : ' + fs.statSync(check_apt_file).mtime);
+            if (((new Date()).getTime() - fs.statSync(check_apt_file).mtimeMs) > 24 * 60 * 60 * 1000) {
+                var stdout = execSync('apt-get update');
+                logger.info(stdout.toString());
+                stdout = execSync('apt-get -s upgrade | grep upgraded');
+                logger.info(stdout.toString());
+                const fd = fs.openSync(check_apt_file, 'w');
+                fs.writeSync(fd, stdout.toString());
+                fs.closeSync(fd);
+                mc.set('CHECK_APT', stdout.toString());
+            }
+        } catch (err) {
+            console.log(err.toString());
         }
-        logger.info('CHECK APT FILE UPDATE TIME : ' + fs.statSync(check_apt_file).mtime);
-        if (((new Date()).getTime() - fs.statSync(check_apt_file).mtimeMs) > 24 * 60 * 60 * 1000) {
-            var stdout = execSync('apt-get update');
-            logger.info(stdout.toString());
-            stdout = execSync('apt-get -s upgrade | grep upgraded');
-            logger.info(stdout.toString());
-            const fd = fs.openSync(check_apt_file, 'w');
-            fs.writeSync(fd, stdout.toString());
-            fs.closeSync(fd);
-        }
+        resolve();
     });
 }
