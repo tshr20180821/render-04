@@ -50,10 +50,11 @@ try {
                         mu.send_slack_message('HTTP STATUS CODE : ' + res.statusCode + ' ' + process.env.RENDER_EXTERNAL_HOSTNAME);
                     }
                 }).end();
+                check_package_update();
             } catch (err) {
                 logger.warn(err.toString());
             }
-            global.gc();
+            // global.gc();
             const memory_usage = process.memoryUsage();
             var message = 'FINISH Heap Total : ' +
                 Math.floor(memory_usage.heapTotal / 1024).toLocaleString() +
