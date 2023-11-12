@@ -18,8 +18,13 @@ try {
         '0 * * * * *',
         function () {
             logger.info('START');
-            mc.set('TEST', 'dummy', {expires:0}, function(err, val) {
-            });
+            try {
+                mc.set('TEST', 'dummy', {
+                    expires: 0
+                }, function (err, val) {});
+            } catch (err) {
+                console.log(err.toString());
+            }
 
             try {
                 var http_options = {
