@@ -43,9 +43,9 @@ RUN dpkg -l \
  && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | /tmp/gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
  && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list \
  && apt-get -q update \
- && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends apt-fast time \
+ && DEBIAN_FRONTEND=noninteractive apt-get -q install -y --no-install-recommends apt-fast time \
  && cp -f /tmp/apt-fast.conf /etc/ \
- && apt-fast  install -y --no-install-recommends \
+ && apt-fast install -y --no-install-recommends \
   binutils \
   ca-certificates \
   curl \
@@ -77,7 +77,7 @@ RUN dpkg -l \
  && apt-get upgrade -y --no-install-recommends \
  && npm cache clean --force \
  && pecl clear-cache \
- && apt-get purge -y --auto-remove gcc gpgv libc6-dev libonig-dev make \
+ && apt-get -q purge -y --auto-remove gcc gpgv libc6-dev libonig-dev make \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/* \
  && mkdir -p /var/www/html/auth \
