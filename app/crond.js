@@ -56,7 +56,7 @@ try {
                         mu.send_slack_message('HTTP STATUS CODE : ' + res.statusCode + ' ' + process.env.RENDER_EXTERNAL_HOSTNAME);
                     }
                 }).end();
-                check_package_update();
+                // check_package_update();
             } catch (err) {
                 logger.warn(err.toString());
             }
