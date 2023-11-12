@@ -49,29 +49,6 @@ try {
                         // https://process.env.RENDER_EXTERNAL_HOSTNAME/cdn-cgi/trace
                         mu.send_slack_message('HTTP STATUS CODE : ' + res.statusCode + ' ' + process.env.RENDER_EXTERNAL_HOSTNAME);
                     }
-
-                    const fs = require('fs');
-                    const dt = new Date();
-                    const {
-                        execSync
-                    } = require('child_process');
-                    const check_apt_file = '/tmp/CHECK_APT';
-                    if (!fs.existsSync(check_apt_file)) {
-                        const fd = fs.openSync(check_apt_file, 'w');
-                        fs.writeSync(fd, 'uchecked');
-                        fs.closeSync(fd);
-                        execSync('chmod 666 ' + check_apt_file);
-                    }
-                    logger.info('CHECK APT FILE UPDATE TIME : ' + fs.statSync(check_apt_file).mtime);
-                    if ((dt.getTime() - fs.statSync(check_apt_file).mtimeMs) > 24 * 60 * 60 * 1000) {
-                        var stdout = execSync('apt-get update');
-                        logger.info(stdout.toString());
-                        stdout = execSync('apt-get -s upgrade | grep upgraded');
-                        logger.info(stdout.toString());
-                        const fd = fs.openSync(check_apt_file, 'w');
-                        fs.writeSync(fd, stdout.toString());
-                        fs.closeSync(fd);
-                    }
                 }).end();
             } catch (err) {
                 logger.warn(err.toString());
@@ -91,4 +68,29 @@ try {
     job.start();
 } catch (err) {
     logger.warn(err.toString());
+}
+
+function check_package_update() {
+    const fs = require('fs');
+    const dt = new Date();
+    const {
+        execSync
+    } = require('child_process');
+    const check_apt_file = '/tmp/CHECK_APT';
+    if (!fs.existsSync(check_apt_file)) {
+        const fd = fs.openSync(check_apt_file, 'w');
+        fs.writeSync(fd, 'uchecked');
+        fs.closeSync(fd);
+        execSync('chmod 666 ' + check_apt_file);
+    }
+    logger.info('CHECK APT FILE UPDATE TIME : ' + fs.statSync(check_apt_file).mtime);
+    if ((dt.getTime() - fs.statSync(check_apt_file).mtimeMs) > 24 * 60 * 60 * 1000) {
+        var stdout = execSync('apt-get update');
+        logger.info(stdout.toString());
+        stdout = execSync('apt-get -s upgrade | grep upgraded');
+        logger.info(stdout.toString());
+        const fd = fs.openSync(check_apt_file, 'w');
+        fs.writeSync(fd, stdout.toString());
+        fs.closeSync(fd);
+    }
 }
