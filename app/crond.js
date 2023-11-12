@@ -121,7 +121,7 @@ function check_package_update() {
             }
             */
         } catch (err) {
-            logger.warn(err);
+            logger.warn(err.stack);
         }
         resolve();
     });
