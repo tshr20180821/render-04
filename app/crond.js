@@ -4,6 +4,7 @@ const mu = require('./MyUtils.js');
 const logger = mu.get_logger();
 
 const https = require("https");
+const url = 'https://' + process.env.RENDER_EXTERNAL_HOSTNAME + '/auth/crond.php';
 
 const CronJob = require('cron').CronJob;
 try {
@@ -24,8 +25,6 @@ try {
                 http_options.agent = new https.Agent({
                     keepAlive: true
                 });
-
-                const url = 'https://' + process.env.RENDER_EXTERNAL_HOSTNAME + '/auth/crond.php';
 
                 var data_buffer = [];
                 https.request(url, http_options, (res) => {
