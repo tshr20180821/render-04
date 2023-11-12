@@ -20,11 +20,11 @@ try {
             logger.info('START');
             try {
                 mc.get('TEST', function (err, val) {
-                    logger.info('CHECK POINT 010');
-                    logger.info(val);
-                    logger.info('CHECK POINT 020');
-                    logger.info(err.toString());
-                    logger.info('CHECK POINT 030');
+                    console.log('CHECK POINT 010');
+                    console.log(val);
+                    console.log('CHECK POINT 020');
+                    console.log(err);
+                    console.log('CHECK POINT 030');
                 });
             } catch (err) {
                 console.log('memjs : ' . err.toString());
