@@ -19,21 +19,11 @@ try {
         function () {
             logger.info('START');
             try {
-                logger.info('CHECK POINT 010');
-                mc.set('TEST', 'dummy', {
-                    expires: 0
-                }, function (err, val) {
-                    console.log('CHECK POINT 020 ' + val);
-                    console.log('CHECK POINT 030 ' + err);
-                });
-                logger.info('CHECK POINT 040');
                 mc.get('TEST', function (err, val) {
-                    console.log('CHECK POINT 050 ' + val);
-                    console.log('CHECK POINT 060 ' + err);
-                })
-                logger.info('CHECK POINT 070');
+                    logger.info('memcached get val : ' + val);
+                    logger.info('memcached get err : ' + err);
+                });
             } catch (err) {
-                logger.info('CHECK POINT 080');
                 console.log('memjs : ' . err.toString());
             }
 
@@ -103,7 +93,11 @@ function check_package_update() {
                 const fd = fs.openSync(check_apt_file, 'w', 0o666);
                 fs.writeSync(fd, 'uchecked');
                 fs.closeSync(fd);
-                // mc.set('CHECK_APT', 'uchecked');
+                mc.set('CHECK_APT', 'uchecked', {
+                    expires: 0
+                }, function (err, val) {
+                    logger.info('memcached set : ' + val);
+                });
             }
             logger.info('CHECK APT FILE UPDATE TIME : ' + fs.statSync(check_apt_file).mtime);
             if (((new Date()).getTime() - fs.statSync(check_apt_file).mtimeMs) > 24 * 60 * 60 * 1000) {
@@ -114,7 +108,11 @@ function check_package_update() {
                 const fd = fs.openSync(check_apt_file, 'w');
                 fs.writeSync(fd, stdout.toString());
                 fs.closeSync(fd);
-                // mc.set('CHECK_APT', stdout.toString());
+                mc.set('CHECK_APT', stdout.toString(), {
+                    expires: 0
+                }, function (err, val) {
+                    logger.info('memcached set : ' + val);
+                });
             }
         } catch (err) {
             console.log(err.toString());
