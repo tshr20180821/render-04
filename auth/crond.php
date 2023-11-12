@@ -141,7 +141,7 @@ __HEREDOC__;
             $options += [CURLOPT_HTTPHEADER => unserialize(base64_decode($headers))];
         }
         if (strlen($authentication) > 0) {
-            $options += [CURLOPT_USERPWD => $authentication];
+            $options += [CURLOPT_USERPWD => base64_encode($authentication)];
         }
         
         if ($method == 'POST') {
