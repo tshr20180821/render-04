@@ -84,7 +84,7 @@ function check_package_update() {
                 if (val == null) {
                     mc.set('CHECK_APT', 'dummy', {
                         expires: 10 * 60
-                    }, function (err, rc) {
+                    }, function (err2, rc) {
                         logger.info('memcached set : ' + rc);
                     });
                     var stdout = execSync('apt-get -q update');
@@ -96,7 +96,7 @@ function check_package_update() {
                         ('0' + dt.getHours()).slice(-2) + ':' + ('0' + dt.getMinutes()).slice(-2);
                     mc.set('CHECK_APT', datetime + ' ' + stdout.toString(), {
                         expires: 24 * 60 * 60
-                    }, function (err, rc) {
+                    }, function (err2, rc) {
                         logger.info('memcached set : ' + rc);
                     });
                 }
