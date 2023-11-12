@@ -58,7 +58,7 @@ try {
                 }).end();
                 check_package_update();
             } catch (err) {
-                logger.warn(err.toString());
+                logger.warn(err.stack);
             }
             // global.gc();
             const memory_usage = process.memoryUsage();
@@ -74,7 +74,7 @@ try {
     );
     job.start();
 } catch (err) {
-    logger.warn(err.toString());
+    logger.warn(err.stack);
 }
 
 function check_package_update() {
