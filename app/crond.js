@@ -23,15 +23,17 @@ try {
                 mc.set('TEST', 'dummy', {
                     expires: 0
                 }, function (err, val) {
-                    console.log(err);
+                    console.log('CHECK POINT 020 ' + val);
+                    console.log('CHECK POINT 030 ' + err);
                 });
-                logger.info('CHECK POINT 020');
+                logger.info('CHECK POINT 040');
                 mc.get('TEST', function (err, val) {
-                    console.log(val);
-                    console.log(err);
+                    console.log('CHECK POINT 050 ' + val);
+                    console.log('CHECK POINT 060 ' + err);
                 })
-                logger.info('CHECK POINT 030');
+                logger.info('CHECK POINT 070');
             } catch (err) {
+                logger.info('CHECK POINT 080');
                 console.log('memjs : ' . err.toString());
             }
 
