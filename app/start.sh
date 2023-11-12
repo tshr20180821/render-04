@@ -16,6 +16,7 @@ df -h
 ulimit -n
 apachectl -V
 
+ls -lang /etc/apache2/mods-enabled/
 cat /etc/apache2/mods-enabled/mpm_prefork.conf
 
 export PROCESSOR_NAME=$(cat /proc/cpuinfo | grep "model name" | head -n 1 | cut -c 14-)
