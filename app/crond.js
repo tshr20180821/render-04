@@ -88,9 +88,11 @@ function check_package_update() {
                         logger.info('memcached set : ' + rc);
                     });
                     var stdout = execSync('apt-get update');
-                    logger.info(stdout.toString());
+                    // logger.info(stdout.toString());
+                    console.log(stdout.toString());
                     stdout = execSync('apt-get -s upgrade | grep upgraded');
-                    logger.info(stdout.toString());
+                    // logger.info(stdout.toString());
+                    console.log(stdout.toString());
                     const dt = new Date();
                     const datetime = dt.getFullYear() + '-' + ('0' + (dt.getMonth() + 1)).slice(-2) + '-' + ('0' + dt.getDate()).slice(-2) + ' ' +
                         ('0' + dt.getHours()).slice(-2) + ':' + ('0' + dt.getMinutes()).slice(-2);
