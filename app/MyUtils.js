@@ -83,18 +83,22 @@ module.exports.send_slack_message = function (message_) {
         }
     };
     new Promise((resolve) => {
-        [process.env.SLACK_CHANNEL_01, process.env.SLACK_CHANNEL_02].forEach(channel => {
-            const post_data = JSON.stringify({
-                text: message_,
-                channel: channel
+        try {
+            [process.env.SLACK_CHANNEL_01, process.env.SLACK_CHANNEL_02].forEach(channel => {
+                const post_data = JSON.stringify({
+                    text: message_,
+                    channel: channel
+                });
+                const request = require('https').request('https://slack.com/api/chat.postMessage', http_options, response => {
+                    logger.info('Slack Post Message Result : ' + response.statusCode);
+                });
+                request.write(post_data);
+                request.end();
+                sleep_ms(1000);
             });
-            const request = require('https').request('https://slack.com/api/chat.postMessage', http_options, response => {
-                logger.info('Slack Post Message Result : ' + response.statusCode);
-            });
-            request.write(post_data);
-            request.end();
-            sleep_ms(1000);
-        });
+        } catch (err) {
+            console.log(err.toString());
+        }
         resolve();
     });
 }
