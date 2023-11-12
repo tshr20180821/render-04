@@ -18,7 +18,7 @@ try {
         '0 * * * * *',
         function () {
             logger.info('START');
-            mc.set('TEST', 'dummy');
+            // mc.set('TEST', 'dummy');
 
             try {
                 var http_options = {
@@ -86,7 +86,7 @@ function check_package_update() {
                 const fd = fs.openSync(check_apt_file, 'w', 0o666);
                 fs.writeSync(fd, 'uchecked');
                 fs.closeSync(fd);
-                mc.set('CHECK_APT', 'uchecked');
+                // mc.set('CHECK_APT', 'uchecked');
             }
             logger.info('CHECK APT FILE UPDATE TIME : ' + fs.statSync(check_apt_file).mtime);
             if (((new Date()).getTime() - fs.statSync(check_apt_file).mtimeMs) > 24 * 60 * 60 * 1000) {
@@ -97,7 +97,7 @@ function check_package_update() {
                 const fd = fs.openSync(check_apt_file, 'w');
                 fs.writeSync(fd, stdout.toString());
                 fs.closeSync(fd);
-                mc.set('CHECK_APT', stdout.toString());
+                // mc.set('CHECK_APT', stdout.toString());
             }
         } catch (err) {
             console.log(err.toString());
