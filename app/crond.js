@@ -22,6 +22,9 @@ try {
                 mc.set('TEST', 'dummy', {
                     expires: 0
                 }, function (err, val) {});
+                mc.get('TEST', function (err, val) {
+                    console.log(val);
+                })
             } catch (err) {
                 console.log(err.toString());
             }
