@@ -20,8 +20,11 @@ try {
             logger.info('START');
             try {
                 mc.get('TEST', function (err, val) {
-                    logger.info('memcached get val : ' + val);
-                    logger.info('memcached get err : ' + err);
+                    logger.info('CHECK POINT 010');
+                    logger.info(val);
+                    logger.info('CHECK POINT 020');
+                    logger.info(err.toString());
+                    logger.info('CHECK POINT 030');
                 });
             } catch (err) {
                 console.log('memjs : ' . err.toString());
