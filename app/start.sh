@@ -14,6 +14,7 @@ whoami
 # free -h
 df -h
 ulimit -n
+apachectl -V
 
 export PROCESSOR_NAME=$(cat /proc/cpuinfo | grep "model name" | head -n 1 | cut -c 14-)
 
