@@ -26,7 +26,7 @@ try {
                     console.log(val);
                 })
             } catch (err) {
-                console.log(err.toString());
+                console.log('memjs : ' . err.toString());
             }
 
             try {
