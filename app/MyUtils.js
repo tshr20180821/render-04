@@ -36,7 +36,7 @@ class MyLog {
                 const match = (new Error()).stack.split("\n")[5].substring(7).match(this._regex);
 
                 if (message_ == null) {
-                    message_ = "";
+                    message_ = "null";
                 }
                 
                 const dt = new Date();
