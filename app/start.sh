@@ -32,6 +32,10 @@ echo "mech_list: plain cram-md5" >/tmp/memcached.conf
 /usr/bin/memcached -S -v -B binary -d -u memcached
 testsaslauthd -u memcached -p ${SASL_PASSWORD}
 
+export MEMCACHIER_SERVERS=127.0.0.1:11211
+export MEMCACHIER_USERNAME=memcached
+export MEMCACHIER_PASSWORD=${SASL_PASSWORD}
+
 php -l /var/www/html/auth/crond.php
 php -l /var/www/html/auth/health_check.php
 php -l /var/www/html/auth/log.php
