@@ -63,11 +63,13 @@ class MyLog {
                 loggly_options.agent = new https.Agent({
                     keepAlive: true
                 });
-                
+
+                /*
                 mc.get('LOGGLY_WAIT', function (err, val) {
                     if (val == null) {
                     }
                 }
+                */
                 const request = https.request(loggly_options);
                 request.write(datetime + ' ' + log_header + ' ' + message_);
                 request.end();
