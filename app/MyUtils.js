@@ -8,6 +8,8 @@ log4js.configure('log4js.json');
 const logger = log4js.getLogger();
 logger.level = 'debug';
 
+const mc = (require('memjs')).Client.create()
+
 if (process.env.DEPLOY_DATETIME != undefined) {
     logger.addContext("DEPLOY_DATETIME", process.env.DEPLOY_DATETIME);
 } else {
@@ -61,6 +63,11 @@ class MyLog {
                 loggly_options.agent = new https.Agent({
                     keepAlive: true
                 });
+                
+                mc.get('LOGGLY_WAIT', function (err, val) {
+                    if (val == null) {
+                    }
+                }
                 const request = https.request(loggly_options);
                 request.write(datetime + ' ' + log_header + ' ' + message_);
                 request.end();
