@@ -56,7 +56,7 @@ try {
                         mu.send_slack_message('HTTP STATUS CODE : ' + res.statusCode + ' ' + process.env.RENDER_EXTERNAL_HOSTNAME);
                     }
                 }).end();
-                // check_package_update();
+                check_package_update();
             } catch (err) {
                 logger.warn(err.stack);
             }
@@ -80,31 +80,47 @@ try {
 function check_package_update() {
     new Promise((resolve) => {
         try {
+            console.log('CHECK POINT 010');
             mc.get('CHECK_APT', function (err, val) {
+                console.log('CHECK POINT 020');
                 if (val == null) {
+                    console.log('CHECK POINT 030');
                     mc.set('CHECK_APT', 'dummy', {
                         expires: 10 * 60
                     }, function (err2, rc) {
+                        console.log('CHECK POINT 040');
                         // logger.info('memcached set : ' + rc);
                         console.warn(rc);
+                        console.log('CHECK POINT 050');
                     });
+                    console.log('CHECK POINT 060');
                     var stdout = execSync('apt-get update');
+                    console.log('CHECK POINT 070');
                     // logger.info(stdout.toString());
                     console.warn(stdout.toString());
+                    console.log('CHECK POINT 080');
                     stdout = execSync('apt-get -s upgrade | grep upgraded');
+                    console.log('CHECK POINT 090');
                     // logger.info(stdout.toString());
                     console.warn(stdout.toString());
+                    console.log('CHECK POINT 100');
+                    
                     const dt = new Date();
                     const datetime = dt.getFullYear() + '-' + ('0' + (dt.getMonth() + 1)).slice(-2) + '-' + ('0' + dt.getDate()).slice(-2) + ' ' +
                         ('0' + dt.getHours()).slice(-2) + ':' + ('0' + dt.getMinutes()).slice(-2);
+                    console.log('CHECK POINT 110');
                     mc.set('CHECK_APT', datetime + ' ' + stdout.toString(), {
                         expires: 24 * 60 * 60
                     }, function (err2, rc) {
+                        console.log('CHECK POINT 120');
                         // logger.info('memcached set : ' + rc);
                         console.warn(rc);
+                        console.log('CHECK POINT 130');
                     });
+                    console.log('CHECK POINT 140');
                 }
             });
+            console.log('CHECK POINT 150');
 
             /*
             const check_apt_file = '/tmp/CHECK_APT';
@@ -125,7 +141,10 @@ function check_package_update() {
             }
             */
         } catch (err) {
-            logger.warn(err.stack);
+            console.log('CHECK POINT 160');
+            // logger.warn(err.stack);
+            console.log(err.stack);
+            console.log('CHECK POINT 170');
         }
         resolve();
     });
