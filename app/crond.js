@@ -9,7 +9,7 @@ const url = 'https://' + process.env.RENDER_EXTERNAL_HOSTNAME + '/auth/crond.php
 const {
    execSync
 } = require('child_process');
-const mc = (require('memjs')).Client.create()
+const memjs = require('memjs');
 
 const CronJob = require('cron').CronJob;
 
@@ -56,7 +56,7 @@ try {
                   mu.send_slack_message('HTTP STATUS CODE : ' + res.statusCode + ' ' + process.env.RENDER_EXTERNAL_HOSTNAME);
                }
             }).end();
-            // check_package_update();
+            check_package_update();
          } catch (err) {
             logger.warn(err.stack);
          }
@@ -78,15 +78,20 @@ try {
 }
 
 function check_package_update() {
+   console.log('CHECK POINT 005');
    new Promise((resolve) => {
       try {
          console.log('CHECK POINT 010');
-         mc.get('CHECK_APT', function (err, val) {
+         const mc1 = memjs.Client.create();
+         console.log('CHECK POINT 015');
+         mc1.get('CHECK_APT', function (err, val) {
             try {
                console.log('CHECK POINT 020');
                if (val == null) {
                   console.log('CHECK POINT 030');
-                  mc.set('CHECK_APT', 'dummy', {
+                  const mc2 = memjs.Client.create();
+                  console.log('CHECK POINT 035');
+                  mc2.set('CHECK_APT', 'dummy', {
                      expires: 10 * 60
                   }, function (err2, rc) {
                      try {
@@ -116,7 +121,9 @@ function check_package_update() {
                   const datetime = dt.getFullYear() + '-' + ('0' + (dt.getMonth() + 1)).slice(-2) + '-' + ('0' + dt.getDate()).slice(-2) + ' ' +
                      ('0' + dt.getHours()).slice(-2) + ':' + ('0' + dt.getMinutes()).slice(-2);
                   console.log('CHECK POINT 110');
-                  mc.set('CHECK_APT', datetime + ' ' + stdout.toString(), {
+                  const mc3 = memjs.Client.create();
+                  console.log('CHECK POINT 115');
+                  mc3.set('CHECK_APT', datetime + ' ' + stdout.toString(), {
                      expires: 24 * 60 * 60
                   }, function (err2, rc) {
                      try {
@@ -166,4 +173,5 @@ function check_package_update() {
       }
       resolve();
    });
+   console.log('CHECK POINT 180');
 }
