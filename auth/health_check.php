@@ -90,6 +90,10 @@ __HEREDOC__;
     $atom = str_replace('__APACHE_VERSION__', $_ENV['APACHE_VERSION'], $atom);
     $atom = str_replace('__PHP_VERSION__', $_ENV['PHP_VERSION'], $atom);
     $atom = str_replace('__NODE_VERSION__', $_ENV['NODE_VERSION'], $atom);
+    $atom = str_replace('__HOST_VERSION__', $_ENV['HOST_VERSION'], $atom);
+    $atom = str_replace('__GUEST_VERSION__', $_ENV['GUEST_VERSION'], $atom);
+    $atom = str_replace('__JAVA_VERSION__', $_ENV['JAVA_VERSION'], $atom);
+    $atom = str_replace('__SQLITE_VERSION__', $_ENV['SQLITE_VERSION'], $atom);
 
     echo $atom;
 }
