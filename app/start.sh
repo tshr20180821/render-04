@@ -52,8 +52,8 @@ export MEMCACHIER_PASSWORD=${SASL_PASSWORD}
 
 php -l /var/www/html/auth/crond.php
 php -l /var/www/html/auth/health_check.php
-php -l /var/www/html/auth/log.php
 php -l /var/www/html/auth/update_sqlite.php
+php -l log.php
 /usr/src/app/node_modules/.bin/eslint crond.js
 /usr/src/app/node_modules/.bin/eslint MyUtils.js
 
