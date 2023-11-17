@@ -37,14 +37,22 @@ $atom = <<< __HEREDOC__
  </author>
  <id>tag:__FQDN__</id>
  <entry>
-   <title>__DEPLOY_DATETIME__</title>
+   <title>__DEPLOY_DATETIME__ Deployed</title>
    <link href="http://example.org/"/>
    <id>tag:__ID__</id>
    <updated>__UPDATED__</updated>
-   <summary>Log Size : __LOG_SIZE__MB
+   <summary>Host : __HOST_VERSION__
+Guest : __GUEST_VERSION__
 Processor : __PROCESSOR_NAME__
+Apache : __APACHE_VERSION__
+PHP : __PHP_VERSION__
+Node.js : __NODE_VERSION__
+JAVA : __JAVA_VERSION__
+SQLite : __SQLITE_VERSION__
+Log Size : __LOG_SIZE__MB
 Docker Hub php:8.2-apache : __DOCKERHUB_UPDATED__
-Package Check : __APT_RESULT__</summary>
+Package Check : __APT_RESULT__
+</summary>
  </entry>
 </feed>
 __HEREDOC__;
@@ -79,6 +87,9 @@ __HEREDOC__;
     $atom = str_replace('__LOG_SIZE__', number_format($file_size), $atom);
     $atom = str_replace('__PROCESSOR_NAME__', $_ENV['PROCESSOR_NAME'], $atom);
     $atom = str_replace('__DOCKERHUB_UPDATED__', $dockerhub_updated, $atom);
+    $atom = str_replace('__APACHE_VERSION__', $_ENV['APACHE_VERSION'], $atom);
+    $atom = str_replace('__PHP_VERSION__', $_ENV['PHP_VERSION'], $atom);
+    $atom = str_replace('__NODE_VERSION__', $_ENV['NODE_VERSION'], $atom);
 
     echo $atom;
 }
