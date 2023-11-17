@@ -41,13 +41,10 @@ $atom = <<< __HEREDOC__
    <link href="http://example.org/"/>
    <id>tag:__ID__</id>
    <updated>__UPDATED__</updated>
-   <summary>Host : __HOST_VERSION__
-Processor : __PROCESSOR_NAME__
-SQLite : __SQLITE_VERSION__
+   <summary>SQLite : __SQLITE_VERSION__
 Log Size : __LOG_SIZE__MB
 Docker Hub php:8.2-apache : __DOCKERHUB_UPDATED__
-Package Check : __APT_RESULT__
-</summary>
+Package Check : __APT_RESULT__</summary>
  </entry>
 </feed>
 __HEREDOC__;
