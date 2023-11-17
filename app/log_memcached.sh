@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PID=$$
+
 while read line; do
-echo "Memcached Log : ${line}"
+echo "${PID} Memcached Log : ${line}"
 done
