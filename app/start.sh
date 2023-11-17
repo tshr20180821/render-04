@@ -15,11 +15,17 @@ whoami
 df -h
 ulimit -n
 apachectl -V
+java --version
 
-ls -lang /etc/apache2/mods-enabled/
-cat /etc/apache2/mods-enabled/mpm_prefork.conf
+# ls -lang /etc/apache2/mods-enabled/
+# cat /etc/apache2/mods-enabled/mpm_prefork.conf
 
+export HOST_VERSION=$(cat /proc/version)
+export GUEST_VERSION=$(cat /etc/os-release | grep "PRETTY_NAME" | cut -c 12-)
 export PROCESSOR_NAME=$(cat /proc/cpuinfo | grep "model name" | head -n 1 | cut -c 14-)
+export APACHE_VERSION=$(apachectl -V | head -n 1)
+export PHP_VERSION=$(php --version | head -n 1)
+export NODE_VERSION=$(node --version)
 
 # npm audit
 npm list --depth=0
@@ -60,15 +66,19 @@ sed -i s/__DEPLOY_DATETIME__/${DEPLOY_DATETIME}/ /etc/apache2/sites-enabled/apac
 
 echo ServerName ${RENDER_EXTERNAL_HOSTNAME} >/etc/apache2/sites-enabled/server_name.conf
 
-# cat /etc/apache2/sites-enabled/apache.conf
-
 echo "${RENDER_EXTERNAL_HOSTNAME} START ${DEPLOY_DATETIME}" >VERSION.txt
+echo "Host" >>VERSION.txt
+echo ${HOST_VERSION} >>VERSION.txt
+echo "Guest" >>VERSION.txt
+echo ${GUEST_VERSION} >>VERSION.txt
+echo "Processor" >>VERSION.txt
+echo ${PROCESSOR_NAME} >>VERSION.txt
 echo "Apache" >>VERSION.txt
-apachectl -V | head -n 1 >>VERSION.txt
+echo ${APACHE_VERSION} >>VERSION.txt
 echo -e "PHP" >>VERSION.txt
-php --version | head -n 1 >>VERSION.txt
+echo ${PHP_VERSION} >>VERSION.txt
 echo "Node.js" >>VERSION.txt
-node --version >>VERSION.txt
+echo ${NODE_VERSION} >>VERSION.txt
 
 VERSION=$(cat VERSION.txt)
 rm VERSION.txt
