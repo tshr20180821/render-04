@@ -41,17 +41,19 @@ $atom = <<< __HEREDOC__
    <link href="http://example.org/"/>
    <id>tag:__ID__</id>
    <updated>__UPDATED__</updated>
-   <summary>__FQDN__ __APT_RESULT__ Log Size : __LOG_SIZE__MB __PROCESSOR_NAME__</summary>
+   <summary>Log Size : __LOG_SIZE__MB
+Processor : __PROCESSOR_NAME__
+Docker Hub php:8.2-apache : __DOCKERHUB_UPDATED__
+Package Check : __APT_RESULT__</summary>
  </entry>
 </feed>
 __HEREDOC__;
-
-    /*
-    $apt_result = '';
-    if (file_exists('/tmp/CHECK_APT')) {
-        $apt_result = trim(file_get_contents('/tmp/CHECK_APT')). ' ' . date('Y/m/d H:i:s', filemtime('/tmp/CHECK_APT'));
+    
+    $file_size = 0;
+    clearstatcache();
+    if (file_exists('/tmp/sqlitelog.db')) {
+        $file_size = filesize('/tmp/sqlitelog.db') / 1024 / 1024;
     }
-    */
 
     $apt_result = '';
     $mc = new Memcached();
@@ -63,9 +65,9 @@ __HEREDOC__;
     }
     $mc->quit();
     
-    $file_size = 0;
-    if (file_exists('/tmp/sqlitelog.db')) {
-        $file_size = filesize('/tmp/sqlitelog.db') / 1024 / 1024;
+    $dockerhub_updated = '';
+    if (apcu_exists('last_updated_8.2-apache')) {
+        $dockerhub_updated = apcu_fetch('last_updated_8.2-apache');
     }
     
     $tmp = str_split($_ENV['DEPLOY_DATETIME'], 2);
@@ -76,6 +78,7 @@ __HEREDOC__;
     $atom = str_replace('__APT_RESULT__', $apt_result, $atom);
     $atom = str_replace('__LOG_SIZE__', number_format($file_size), $atom);
     $atom = str_replace('__PROCESSOR_NAME__', $_ENV['PROCESSOR_NAME'], $atom);
+    $atom = str_replace('__DOCKERHUB_UPDATED__', $dockerhub_updated, $atom);
 
     echo $atom;
 }
