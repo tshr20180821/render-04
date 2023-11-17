@@ -78,6 +78,11 @@ __HEREDOC__;
         $dockerhub_updated = apcu_fetch('last_updated_8.2-apache');
     }
     
+    $sqlite_version = '';
+    if (apcu_exists('SQLITE_VERSION')) {
+        $sqlite_version = apcu_fetch('SQLITE_VERSION');
+    }
+    
     $tmp = str_split($_ENV['DEPLOY_DATETIME'], 2);
     $atom = str_replace('__DEPLOY_DATETIME__', $tmp[0] . $tmp[1] . '-' . $tmp[2] . '-' . $tmp[3] . ' ' . $tmp[4] . ':' . $tmp[5] . ':' . $tmp[6], $atom);
     $atom = str_replace('__ID__', $_ENV['RENDER_EXTERNAL_HOSTNAME'] . '-' . uniqid(), $atom);
@@ -93,7 +98,7 @@ __HEREDOC__;
     $atom = str_replace('__HOST_VERSION__', $_ENV['HOST_VERSION'], $atom);
     $atom = str_replace('__GUEST_VERSION__', $_ENV['GUEST_VERSION'], $atom);
     $atom = str_replace('__JAVA_VERSION__', $_ENV['JAVA_VERSION'], $atom);
-    $atom = str_replace('__SQLITE_VERSION__', $_ENV['SQLITE_VERSION'], $atom);
+    $atom = str_replace('__SQLITE_VERSION__', $sqlite_version, $atom);
 
     echo $atom;
 }
