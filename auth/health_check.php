@@ -42,12 +42,7 @@ $atom = <<< __HEREDOC__
    <id>tag:__ID__</id>
    <updated>__UPDATED__</updated>
    <summary>Host : __HOST_VERSION__
-Guest : __GUEST_VERSION__
 Processor : __PROCESSOR_NAME__
-Apache : __APACHE_VERSION__
-PHP : __PHP_VERSION__
-Node.js : __NODE_VERSION__
-Java : __JAVA_VERSION__
 SQLite : __SQLITE_VERSION__
 Log Size : __LOG_SIZE__MB
 Docker Hub php:8.2-apache : __DOCKERHUB_UPDATED__
