@@ -47,7 +47,7 @@ Processor : __PROCESSOR_NAME__
 Apache : __APACHE_VERSION__
 PHP : __PHP_VERSION__
 Node.js : __NODE_VERSION__
-JAVA : __JAVA_VERSION__
+Java : __JAVA_VERSION__
 SQLite : __SQLITE_VERSION__
 Log Size : __LOG_SIZE__MB
 Docker Hub php:8.2-apache : __DOCKERHUB_UPDATED__
