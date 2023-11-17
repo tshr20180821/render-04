@@ -21,11 +21,12 @@ java --version
 # cat /etc/apache2/mods-enabled/mpm_prefork.conf
 
 export HOST_VERSION=$(cat /proc/version)
-export GUEST_VERSION=$(cat /etc/os-release | grep "PRETTY_NAME" | cut -c 12-)
+export GUEST_VERSION=$(cat /etc/os-release | grep "PRETTY_NAME" | cut -c 13- | tr -d '"')
 export PROCESSOR_NAME=$(cat /proc/cpuinfo | grep "model name" | head -n 1 | cut -c 14-)
 export APACHE_VERSION=$(apachectl -V | head -n 1)
 export PHP_VERSION=$(php --version | head -n 1)
 export NODE_VERSION=$(node --version)
+export JAVA_VERSION=$(java --version | head -n 1)
 
 # npm audit
 npm list --depth=0
@@ -79,6 +80,8 @@ echo -e "PHP" >>VERSION.txt
 echo ${PHP_VERSION} >>VERSION.txt
 echo "Node.js" >>VERSION.txt
 echo ${NODE_VERSION} >>VERSION.txt
+echo "Java" >>VERSION.txt
+echo ${JAVA_VERSION} >>VERSION.txt
 
 VERSION=$(cat VERSION.txt)
 rm VERSION.txt
