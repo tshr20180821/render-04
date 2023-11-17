@@ -46,12 +46,13 @@ $atom = <<< __HEREDOC__
 </feed>
 __HEREDOC__;
 
+    /*
     $apt_result = '';
     if (file_exists('/tmp/CHECK_APT')) {
         $apt_result = trim(file_get_contents('/tmp/CHECK_APT')). ' ' . date('Y/m/d H:i:s', filemtime('/tmp/CHECK_APT'));
     }
+    */
 
-    /*
     $apt_result = '';
     $mc = new Memcached();
     $mc->setOption(Memcached::OPT_BINARY_PROTOCOL, true);
@@ -61,7 +62,6 @@ __HEREDOC__;
         $apt_result = $mc->get('CHECK_APT');
     }
     $mc->quit();
-    */
     
     $file_size = 0;
     if (file_exists('/tmp/sqlitelog.db')) {

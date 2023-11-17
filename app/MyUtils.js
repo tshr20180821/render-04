@@ -8,8 +8,6 @@ log4js.configure('log4js.json');
 const logger = log4js.getLogger();
 logger.level = 'debug';
 
-const mc = (require('memjs')).Client.create()
-
 if (process.env.DEPLOY_DATETIME != undefined) {
     logger.addContext("DEPLOY_DATETIME", process.env.DEPLOY_DATETIME);
 } else {
@@ -17,10 +15,12 @@ if (process.env.DEPLOY_DATETIME != undefined) {
 }
 
 class MyLog {
-    _regex;
+    _regex1;
+    _regex2;
 
     constructor() {
-        this._regex = /(.+) .+\/(.+?):(\d+)/;
+        this._regex1 = /(.+) .+\/(.+?):(\d+)/;
+        this._regex2 = /(\/)(.+?):(\d+)/;
     }
 
     info(message_) {
@@ -32,14 +32,14 @@ class MyLog {
     }
 
     #output(level_, message_) {
-        new Promise((resolve) => {
+        new Promise(() => {
             try {
-                console.log((new Error).stack);
-                const match = (new Error()).stack.split("\n")[5].substring(7).match(this._regex);
-                console.log(match);
-
-                if (message_ == null) {
-                    message_ = "null";
+                // console.log((new Error).stack);
+                const target_line = (new Error()).stack.split("\n")[5].substring(7);
+                var match = target_line.match(this._regex1);
+                if (match == null) {
+                    match = target_line.match(this._regex2);
+                    match[1] = "-";
                 }
                 
                 const dt = new Date();
@@ -64,19 +64,12 @@ class MyLog {
                     keepAlive: true
                 });
 
-                /*
-                mc.get('LOGGLY_WAIT', function (err, val) {
-                    if (val == null) {
-                    }
-                }
-                */
                 const request = https.request(loggly_options);
                 request.write(datetime + ' ' + log_header + ' ' + message_);
                 request.end();
             } catch (err) {
                 console.warn(err.stack);
             }
-            resolve();
         });
     }
 }
@@ -96,7 +89,7 @@ module.exports.send_slack_message = function (message_) {
             'Content-type': 'application/json'
         }
     };
-    new Promise((resolve) => {
+    new Promise(() => {
         try {
             [process.env.SLACK_CHANNEL_01, process.env.SLACK_CHANNEL_02].forEach(channel => {
                 const post_data = JSON.stringify({
@@ -113,7 +106,6 @@ module.exports.send_slack_message = function (message_) {
         } catch (err) {
             console.warn(err.stack);
         }
-        resolve();
     });
 }
 
@@ -149,7 +141,7 @@ module.exports.send_mail = function (subject_, body_) {
 
     (async () => {
         const smtp = require('nodemailer').createTransport(smtp_options);
-        const result = await smtp.sendMail(mail, function (err, info) {
+        await smtp.sendMail(mail, function (err, info) {
             if (err) {
                 logger.warn(err.stack);
             } else {
