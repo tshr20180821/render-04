@@ -97,7 +97,7 @@ RUN dpkg -l \
 
 COPY ./config.inc.php /var/www/html/phpmyadmin/
 COPY ./app/* /usr/src/app/
-COPY --chmod=755 ./app/log.sh /usr/src/app/
+COPY --chmod=755 ./app/*.sh /usr/src/app/
 
 COPY ./auth/*.php /var/www/html/auth/
 
