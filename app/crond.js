@@ -80,6 +80,7 @@ try {
 function check_package_update() {
     new Promise(() => {
        try {
+            logger.info('START check_package_update');
             const mc = memjs.Client.create();
             var check_apt = '';
             mc.get('CHECK_APT', function (err, val) {
