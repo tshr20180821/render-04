@@ -28,10 +28,14 @@ export PHP_VERSION=$(php --version | head -n 1)
 export NODE_VERSION=$(node --version)
 export JAVA_VERSION=$(java --version | head -n 1)
 
+# phpMyAdmin
+export BLOWFISH_SECRET=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
+
+export FIXED_THREAD_POOL=1
+export DEPLOY_DATETIME=$(date +'%Y%m%d%H%M%S')
+
 # npm audit
 npm list --depth=0
-
-chmod +x log_memcached.sh
 
 # memcached sasl
 useradd memcached -G sasl
@@ -59,11 +63,6 @@ php -l log.php
 
 ls -lang /var/www/html/
 
-# phpMyAdmin
-export BLOWFISH_SECRET=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
-
-export FIXED_THREAD_POOL=1
-export DEPLOY_DATETIME=$(date +'%Y%m%d%H%M%S')
 sed -i s/__RENDER_EXTERNAL_HOSTNAME__/${RENDER_EXTERNAL_HOSTNAME}/ /etc/apache2/sites-enabled/apache.conf
 sed -i s/__DEPLOY_DATETIME__/${DEPLOY_DATETIME}/ /etc/apache2/sites-enabled/apache.conf
 
