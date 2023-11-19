@@ -29,23 +29,23 @@ function push_atom()
 $atom = <<< __HEREDOC__
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
- <title>Health Check __FQDN__</title>
- <link href="http://example.org/"/>
- <updated>2022-01-01T00:00:00Z</updated>
- <author>
-   <name>__FQDN__</name>
- </author>
- <id>tag:__FQDN__</id>
- <entry>
-   <title>__DEPLOY_DATETIME__ Deployed</title>
-   <link href="http://example.org/"/>
-   <id>tag:__ID__</id>
-   <updated>__UPDATED__</updated>
-   <summary>SQLite : __SQLITE_VERSION__
+  <title>Health Check __FQDN__</title>
+  <link href="http://example.org/"/>
+  <updated>2022-01-01T00:00:00Z</updated>
+  <author>
+    <name>__FQDN__</name>
+  </author>
+  <id>tag:__FQDN__</id>
+  <entry>
+    <title>__DEPLOY_DATETIME__ Deployed</title>
+    <link href="http://example.org/"/>
+    <id>tag:__ID__</id>
+    <updated>__UPDATED__</updated>
+    <summary>SQLite : __SQLITE_VERSION__
 Log Size : __LOG_SIZE__MB
 Docker Hub php:8.2-apache : __DOCKER_HUB_UPDATED__
 Package Check : __APT_RESULT__</summary>
- </entry>
+  </entry>
 </feed>
 __HEREDOC__;
     
