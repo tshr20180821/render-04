@@ -43,7 +43,7 @@ $atom = <<< __HEREDOC__
    <updated>__UPDATED__</updated>
    <summary>SQLite : __SQLITE_VERSION__
 Log Size : __LOG_SIZE__MB
-Docker Hub php:8.2-apache : __DOCKERHUB_UPDATED__
+Docker Hub php:8.2-apache : __DOCKER_HUB_UPDATED__
 Package Check : __APT_RESULT__</summary>
  </entry>
 </feed>
@@ -65,9 +65,9 @@ __HEREDOC__;
     }
     $mc->quit();
     
-    $dockerhub_updated = '';
-    if (apcu_exists('last_updated_8.2-apache')) {
-        $dockerhub_updated = apcu_fetch('last_updated_8.2-apache');
+    $docker_hub_updated = '';
+    if (apcu_exists('last_updated_' . $_ENV['DOCKER_HUB_PHP_TAG'])) {
+        $docker_hub_updated = apcu_fetch('last_updated_' . $_ENV['DOCKER_HUB_PHP_TAG']);
     }
     
     $sqlite_version = '';
@@ -83,7 +83,7 @@ __HEREDOC__;
     $atom = str_replace('__APT_RESULT__', $apt_result, $atom);
     $atom = str_replace('__LOG_SIZE__', number_format($file_size), $atom);
     $atom = str_replace('__PROCESSOR_NAME__', $_ENV['PROCESSOR_NAME'], $atom);
-    $atom = str_replace('__DOCKERHUB_UPDATED__', $dockerhub_updated, $atom);
+    $atom = str_replace('__DOCKER_HUB_UPDATED__', $docker_hub_updated, $atom);
     $atom = str_replace('__APACHE_VERSION__', $_ENV['APACHE_VERSION'], $atom);
     $atom = str_replace('__PHP_VERSION__', $_ENV['PHP_VERSION'], $atom);
     $atom = str_replace('__NODE_VERSION__', $_ENV['NODE_VERSION'], $atom);
