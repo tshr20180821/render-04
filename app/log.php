@@ -16,7 +16,7 @@ class Log
     function __construct() {
 
         clearstatcache();
-        if (!file_exists('/tmp/sqlitelog.db')) {
+        if (!file_exists($_ENV['SQLITE_LOG_DB_FILE'])) {
             $pdo = new PDO('sqlite:' . $_ENV['SQLITE_LOG_DB_FILE'], NULL, NULL, array(PDO::ATTR_PERSISTENT => TRUE));
 
             $sql_create = <<< __HEREDOC__
