@@ -12,6 +12,8 @@ exec_log_operation();
 
 $log->info('FINISH ' . substr((microtime(true) - $time_start), 0, 7) . 's');
 
+exit();
+
 function exec_log_operation()
 {
      global $log;
