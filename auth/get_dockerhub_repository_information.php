@@ -25,9 +25,9 @@ function get_dockerhub_repository_information()
         $data = json_decode($res, true);
 
         foreach ($data['results'] as $data_tag) {
-            if ($data_tag['name'] == '8.2-apache') {
+            if ($data_tag['name'] == $_ENV['DOCKER_HUB_PHP_TAG']) {
                 $log->info($data_tag['last_updated']);
-                apcu_store('last_updated_8.2-apache', $data_tag['last_updated']);
+                apcu_store('last_updated_' . $_ENV['DOCKER_HUB_PHP_TAG'], $data_tag['last_updated']);
                 break 2;
             }
         }
