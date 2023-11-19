@@ -50,8 +50,8 @@ __HEREDOC__;
     
     $file_size = 0;
     clearstatcache();
-    if (file_exists('/tmp/sqlitelog.db')) {
-        $file_size = filesize('/tmp/sqlitelog.db') / 1024 / 1024;
+    if (file_exists($_ENV['SQLITE_LOG_DB_FILE'])) {
+        $file_size = filesize($_ENV['SQLITE_LOG_DB_FILE']) / 1024 / 1024;
     }
 
     $apt_result = '';
