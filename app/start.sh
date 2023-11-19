@@ -28,6 +28,8 @@ export PHP_VERSION=$(php --version | head -n 1)
 export NODE_VERSION=$(node --version)
 export JAVA_VERSION=$(java --version | head -n 1)
 
+export SQLITE_LOG_DB_FILE="/tmp/sqlitelog.db"
+
 # phpMyAdmin
 export BLOWFISH_SECRET=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
 
