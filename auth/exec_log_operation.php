@@ -4,7 +4,6 @@ include('/usr/src/app/log.php');
 
 $log = new Log();
 
-$pid = getmypid();
 $requesturi = $_SERVER['REQUEST_URI'];
 $time_start = microtime(true);
 $log->info("START {$requesturi}");
