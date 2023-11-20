@@ -28,6 +28,7 @@ export APACHE_VERSION=$(apachectl -V | head -n 1)
 export PHP_VERSION=$(php --version | head -n 1)
 export NODE_VERSION=$(node --version)
 export JAVA_VERSION=$(java --version | head -n 1)
+export MEMCACHED_VERSION=$(memcached -h | head -n 1)
 
 export SQLITE_LOG_DB_FILE="/tmp/sqlitelog.db"
 
@@ -48,9 +49,9 @@ chown memcached:memcached /etc/sasldb2
 # sasldblistusers2
 export SASL_CONF_PATH=/tmp/memcached.conf
 echo "mech_list: plain cram-md5" >${SASL_CONF_PATH}
-/usr/sbin/saslauthd -a sasldb -n 2 -V 2>&1 |/usr/src/app/log_general.sh saslauthd &
-/usr/bin/memcached -S -v -B binary -d -u memcached 2>&1 |/usr/src/app/log_general.sh memcached &
-testsaslauthd -u memcached -p ${SASL_PASSWORD}
+# /usr/sbin/saslauthd -a sasldb -n 2 -V 2>&1 |/usr/src/app/log_general.sh saslauthd &
+memcached -S -v -B binary -d -u memcached 2>&1 |/usr/src/app/log_general.sh memcached &
+# testsaslauthd -u memcached -p ${SASL_PASSWORD}
 
 # memjs
 export MEMCACHIER_SERVERS=127.0.0.1:11211
@@ -66,26 +67,18 @@ php -l log.php
 
 ls -lang /var/www/html/
 
-sed -i s/__RENDER_EXTERNAL_HOSTNAME__/${RENDER_EXTERNAL_HOSTNAME}/ /etc/apache2/sites-enabled/apache.conf
+sed -i s/__RENDER_EXTERNAL_HOSTNAME__/${RENDER_EXTERNAL_HOSTNAME}/g /etc/apache2/sites-enabled/apache.conf
 sed -i s/__DEPLOY_DATETIME__/${DEPLOY_DATETIME}/ /etc/apache2/sites-enabled/apache.conf
 
-echo ServerName ${RENDER_EXTERNAL_HOSTNAME} >/etc/apache2/sites-enabled/server_name.conf
-
 echo "${RENDER_EXTERNAL_HOSTNAME} START ${DEPLOY_DATETIME}" >VERSION.txt
-echo "Host" >>VERSION.txt
-echo ${HOST_VERSION} >>VERSION.txt
-echo "Guest" >>VERSION.txt
-echo ${GUEST_VERSION} >>VERSION.txt
-echo "Processor" >>VERSION.txt
-echo ${PROCESSOR_NAME} >>VERSION.txt
-echo "Apache" >>VERSION.txt
-echo ${APACHE_VERSION} >>VERSION.txt
-echo -e "PHP" >>VERSION.txt
-echo ${PHP_VERSION} >>VERSION.txt
-echo "Node.js" >>VERSION.txt
-echo ${NODE_VERSION} >>VERSION.txt
-echo "Java" >>VERSION.txt
-echo ${JAVA_VERSION} >>VERSION.txt
+echo "Host : ${HOST_VERSION}" >>VERSION.txt
+echo "Guest : ${GUEST_VERSION}" >>VERSION.txt
+echo "Processor : ${PROCESSOR_NAME}" >>VERSION.txt
+echo "Apache : ${APACHE_VERSION}" >>VERSION.txt
+echo "PHP : ${PHP_VERSION}" >>VERSION.txt
+echo "Node.js : ${NODE_VERSION}" >>VERSION.txt
+echo "Java : ${JAVA_VERSION}" >>VERSION.txt
+echo "Memcached : ${MEMCACHED_VERSION}" >>VERSION.txt
 
 VERSION=$(cat VERSION.txt)
 rm VERSION.txt
@@ -98,7 +91,7 @@ curl -sS -X POST -H "Authorization: Bearer ${SLACK_TOKEN}" \
 . /etc/apache2/envvars >/dev/null 2>&1
 exec /usr/sbin/apache2 -DFOREGROUND &
 
-sleep 3s && ps aux &
+sleep 5s && ps aux && sleep 30s && ps aux && sleep 30s && ps aux && sleep 30s && ps aux && sleep 30s && ps aux &
 
 # find / -size +50M | xargs ls -l | sort -rn &
 
