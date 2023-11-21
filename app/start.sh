@@ -16,7 +16,9 @@ df -h
 ulimit -n
 apachectl -V
 java --version
-echo ${DOCKER_HUB_PHP_TAG}
+
+tmp1=$(cat ./Dockerfile | head -n 1)
+export DOCKER_HUB_PHP_TAG=${tmp1:9}
 
 # ls -lang /etc/apache2/mods-enabled/
 # cat /etc/apache2/mods-enabled/mpm_prefork.conf

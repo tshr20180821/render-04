@@ -1,8 +1,4 @@
-ARG DOCKER_HUB_PHP_TAG="8.2-apache"
-
-FROM php:${DOCKER_HUB_PHP_TAG}
-
-ENV DOCKER_HUB_PHP_TAG="8.2-apache"
+FROM php:8.2-apache
 
 EXPOSE 80
 
@@ -102,6 +98,7 @@ RUN dpkg -l \
 COPY ./config.inc.php /var/www/html/phpmyadmin/
 COPY ./app/* /usr/src/app/
 COPY --chmod=755 ./app/*.sh /usr/src/app/
+COPY ./Dockerfile /usr/src/app/
 
 COPY ./auth/*.php /var/www/html/auth/
 
