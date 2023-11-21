@@ -88,13 +88,18 @@ function check_apt_update() {
             const mc = memjs.Client.create();
             var check_apt = '';
             mc.get('CHECK_APT', function (err, val) {
+                logger.info('check_apt_update CHECK POINT 010');
                 if (err) {
+                    logger.info('check_apt_update CHECK POINT 020');
                     logger.warn(err.stack);
                 }
+                logger.info('check_apt_update CHECK POINT 030');
                 if (val != null) {
+                    logger.info('check_apt_update CHECK POINT 040');
                     logger.info('memcached hit CHECK_APT : ' + val);
                     return;
                 }
+                logger.info('check_apt_update CHECK POINT 050');
                 const dt = new Date();
                 const datetime = dt.getFullYear() + '-' + ('0' + (dt.getMonth() + 1)).slice(-2) + '-' + ('0' + dt.getDate()).slice(-2) + ' ' +
                    ('0' + dt.getHours()).slice(-2) + ':' + ('0' + dt.getMinutes()).slice(-2);
@@ -112,6 +117,7 @@ function check_apt_update() {
                 });
             });
         } catch (err) {
+            logger.info('check_apt_update CHECK POINT 060');
             logger.warn(err.stack);
         }
     });
