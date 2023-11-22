@@ -62,37 +62,37 @@ RUN dpkg -l \
   sasl2-bin \
   tzdata \
   zlib1g-dev \
- && MAKEFLAGS="-j $(nproc)" pecl install apcu >/dev/null \
- && docker-php-ext-enable apcu \
- && MAKEFLAGS="-j $(nproc)" pecl install memcached --enable-memcached-sasl >/dev/null \
- && docker-php-ext-enable memcached \
- && docker-php-ext-configure zip --with-zip >/dev/null \
- && docker-php-ext-install -j$(nproc) \
+ && MAKEFLAGS="-j $(nproc)" time pecl install apcu >/dev/null \
+ && time docker-php-ext-enable apcu \
+ && MAKEFLAGS="-j $(nproc)" time pecl install memcached --enable-memcached-sasl >/dev/null \
+ && time docker-php-ext-enable memcached \
+ && time docker-php-ext-configure zip --with-zip >/dev/null \
+ && time docker-php-ext-install -j$(nproc) \
   pdo_mysql \
   mysqli \
   mbstring \
   >/dev/null \
- && npm install \
- && npm update -g \
- && npm audit fix \
- && apt-get upgrade -y --no-install-recommends \
- && npm cache clean --force \
- && pecl clear-cache \
- && apt-get -q purge -y --auto-remove gcc libonig-dev make \
- && apt-get clean \
+ && time npm install \
+ && time npm update -g \
+ && time npm audit fix \
+ && time apt-get upgrade -y --no-install-recommends \
+ && time npm cache clean --force \
+ && time pecl clear-cache \
+ && time apt-get -q purge -y --auto-remove gcc libonig-dev make \
+ && time apt-get clean \
  && rm -rf /var/lib/apt/lists/* \
  && mkdir -p /var/www/html/auth \
  && mkdir -p /var/www/html/phpmyadmin \
  && a2dissite -q 000-default.conf \
  && a2enmod -q authz_groupfile rewrite \
  && ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime \
- && curl -sS \
+ && time curl -sS \
   -LO https://github.com/xerial/sqlite-jdbc/releases/download/$SQLITE_JDBC_VERSION/sqlite-jdbc-$SQLITE_JDBC_VERSION.jar \
   -LO https://repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.9/slf4j-api-2.0.9.jar \
   -LO https://repo1.maven.org/maven2/org/slf4j/slf4j-nop/2.0.9/slf4j-nop-2.0.9.jar \
   -O https://raw.githubusercontent.com/tshr20180821/render-07/main/app/LogOperation.jar \
   -o /tmp/phpMyAdmin.tar.xz https://files.phpmyadmin.net/phpMyAdmin/5.2.1/phpMyAdmin-5.2.1-all-languages.tar.xz \
- && tar xf /tmp/phpMyAdmin.tar.xz --strip-components=1 -C /var/www/html/phpmyadmin \
+ && time tar xf /tmp/phpMyAdmin.tar.xz --strip-components=1 -C /var/www/html/phpmyadmin \
  && rm /tmp/phpMyAdmin.tar.xz \
  && chown www-data:www-data /var/www/html/phpmyadmin -R
 
