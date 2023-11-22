@@ -93,7 +93,7 @@ curl -sS -X POST -H "Authorization: Bearer ${SLACK_TOKEN}" \
 . /etc/apache2/envvars >/dev/null 2>&1
 exec /usr/sbin/apache2 -DFOREGROUND &
 
-for i in {1..10} ; do sleep 30s && ps aux ; done &
+for i in {1..60} ; do sleep 30s && ps aux ; done &
 
 export START_TIME=$(date +%s%3N)
 
