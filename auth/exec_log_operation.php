@@ -20,7 +20,7 @@ function exec_log_operation()
      
      $log->info('BEGIN');
 
-     exec('cd /usr/src/app && java -Xmx 256m -Xms 128m -classpath .:sqlite-jdbc-' . $_ENV['SQLITE_JDBC_VERSION'] . '.jar:slf4j-api-2.0.9.jar:slf4j-nop-2.0.9.jar:LogOperation.jar'
+     exec('cd /usr/src/app && java -Xmx256m -Xms64m -classpath .:sqlite-jdbc-' . $_ENV['SQLITE_JDBC_VERSION'] . '.jar:slf4j-api-2.0.9.jar:slf4j-nop-2.0.9.jar:LogOperation.jar'
           . ' -Duser.timezone=Asia/Tokyo -Dfile.encoding=UTF-8 LogOperationMain &');
      
      if (file_exists($_ENV['SQLITE_LOG_DB_FILE']) && apcu_exists('SQLITE_VERSION') == false) {
