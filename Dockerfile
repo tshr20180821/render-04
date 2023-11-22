@@ -17,7 +17,8 @@ COPY ./apache.conf /etc/apache2/sites-enabled/
 COPY ./apt-fast.conf /tmp/
 COPY ./app/package.json /usr/src/app
 
-ENV SQLITE_JDBC_VERSION="3.43.2.2"
+# ENV SQLITE_JDBC_VERSION="3.43.2.2"
+ENV SQLITE_JDBC_VERSION="3.44.0.0"
 
 # binutils : strings
 # ca-certificates : node.js
