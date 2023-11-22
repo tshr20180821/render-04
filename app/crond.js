@@ -29,7 +29,7 @@ try {
                     }
                 };
                 http_options.agent = new https.Agent({
-                    keepAlive: true
+                    keepAlive: false
                 });
 
                 var data_buffer = [];
