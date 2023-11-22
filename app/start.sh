@@ -95,6 +95,8 @@ exec /usr/sbin/apache2 -DFOREGROUND &
 
 for i in {1..10} ; do sleep 30s && ps aux ; done &
 
+export START_TIME=$(date +%s%3N)
+
 # find / -size +50M | xargs ls -l | sort -rn &
 
 # forever start -c ”node --expose-gc" crond.js
