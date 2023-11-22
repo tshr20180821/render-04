@@ -93,7 +93,7 @@ curl -sS -X POST -H "Authorization: Bearer ${SLACK_TOKEN}" \
 . /etc/apache2/envvars >/dev/null 2>&1
 exec /usr/sbin/apache2 -DFOREGROUND &
 
-sleep 5s && ps aux && sleep 30s && ps aux && sleep 30s && ps aux && sleep 30s && ps aux && sleep 30s && ps aux && sleep 30s && ps aux && sleep 30s && ps aux && sleep 30s && ps aux &
+for i in {1..10} ; do sleep 30s && ps aux ; done &
 
 # find / -size +50M | xargs ls -l | sort -rn &
 
