@@ -56,10 +56,12 @@ try {
                         mu.send_slack_message('HTTP STATUS CODE : ' + res.statusCode + ' ' + process.env.RENDER_EXTERNAL_HOSTNAME);
                     }
                 }).end();
-                if ((new Date()).getMinutes() % 2 == 0) {
-                    check_apt_update();
-                } else {
-                    check_npm_update();
+                if (Date.now() - process.env.START_TIME > 5 * 60 * 1000) {
+                    if ((new Date()).getMinutes() % 2 == 0) {
+                        check_apt_update();
+                    } else {
+                        check_npm_update();
+                    }
                 }
             } catch (err) {
                 logger.warn(err.stack);
