@@ -46,7 +46,7 @@ RUN dpkg -l \
  && apt-get -q update \
  && DEBIAN_FRONTEND=noninteractive apt-get -q install -y --no-install-recommends apt-fast time \
  && cp -f /tmp/apt-fast.conf /etc/ \
- && apt-fast install -y --no-install-recommends \
+ && time apt-fast install -y --no-install-recommends \
   binutils \
   ca-certificates \
   curl \
