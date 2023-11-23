@@ -56,7 +56,7 @@ RUN dpkg -l \
  && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | ./gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
  && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list \
  && time apt-get -q update \
- && DEBIAN_FRONTEND=noninteractive time apt-get -q install -y --no-install-recommends apt-fast \
+ && time DEBIAN_FRONTEND=noninteractive apt-get -q install -y --no-install-recommends apt-fast \
  && cp -f /tmp/apt-fast.conf /etc/ \
  && time apt-fast install -y --no-install-recommends \
   binutils \
@@ -74,7 +74,7 @@ RUN dpkg -l \
   sasl2-bin \
   tzdata \
   zlib1g-dev \
- && MAKEFLAGS="-j $(nproc)" time pecl install apcu >/dev/null \
+ && time MAKEFLAGS="-j $(nproc)" pecl install apcu >/dev/null \
  && time docker-php-ext-enable apcu \
  && MAKEFLAGS="-j $(nproc)" time pecl install memcached --enable-memcached-sasl >/dev/null \
  && time docker-php-ext-enable memcached \
