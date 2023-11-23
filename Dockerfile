@@ -98,8 +98,8 @@ RUN dpkg -l \
  && a2dissite -q 000-default.conf \
  && a2enmod -q authz_groupfile rewrite \
  && ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime \
- && time tar xf ./phpMyAdmin-5.2.1-all-languages.xz --strip-components=1 -C /var/www/html/phpmyadmin \
- && rm ./phpMyAdmin-5.2.1-all-languages ./download.txt \
+ && time tar xf ./phpMyAdmin-5.2.1-all-languages.tar.xz --strip-components=1 -C /var/www/html/phpmyadmin \
+ && rm ./phpMyAdmin-5.2.1-all-languages.tar.xz ./download.txt \
  && chown www-data:www-data /var/www/html/phpmyadmin -R
 
 COPY ./config.inc.php /var/www/html/phpmyadmin/
