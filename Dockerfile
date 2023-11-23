@@ -2,6 +2,8 @@ FROM php:8.2-apache
 
 EXPOSE 80
 
+SHELL ["/bin/bash", "-c"]
+
 WORKDIR /usr/src/app
 
 ENV CFLAGS="-O2 -march=native -mtune=native -fomit-frame-pointer"
@@ -17,8 +19,12 @@ COPY ./apache.conf /etc/apache2/sites-enabled/
 COPY ./apt-fast.conf /tmp/
 COPY ./app/package.json /usr/src/app
 
-# ENV SQLITE_JDBC_VERSION="3.43.2.2"
 ENV SQLITE_JDBC_VERSION="3.44.0.0"
+
+# https://github.com/xerial/sqlite-jdbc/releases/download/$SQLITE_JDBC_VERSION/sqlite-jdbc-$SQLITE_JDBC_VERSION.jar
+# https://files.phpmyadmin.net/phpMyAdmin/5.2.1/phpMyAdmin-5.2.1-all-languages.tar.xz
+# https://repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.9/slf4j-api-2.0.9.jar
+# https://repo1.maven.org/maven2/org/slf4j/slf4j-nop/2.0.9/slf4j-nop-2.0.9.jar
 
 # binutils : strings
 # ca-certificates : node.js
@@ -36,15 +42,21 @@ ENV SQLITE_JDBC_VERSION="3.44.0.0"
 # tzdata : ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
 # zlib1g-dev : pecl memcached
 RUN dpkg -l \
- && curl -sSo /tmp/gpg https://raw.githubusercontent.com/tshr20180821/render-07/main/app/gpg \
- && chmod +x /tmp/gpg \
+ && echo "https://raw.githubusercontent.com/tshr20180821/render-07/main/app/sqlite-jdbc-$SQLITE_JDBC_VERSION.jar" >download.txt \
+ && echo "https://raw.githubusercontent.com/tshr20180821/render-07/main/app/phpMyAdmin-5.2.1-all-languages.tar.xz" >>download.txt \
+ && echo "https://raw.githubusercontent.com/tshr20180821/render-07/main/app/slf4j-api-2.0.9.jar" >>download.txt \
+ && echo "https://raw.githubusercontent.com/tshr20180821/render-07/main/app/slf4j-nop-2.0.9.jar" >>download.txt \
+ && echo "https://raw.githubusercontent.com/tshr20180821/render-07/main/app/LogOperation.jar" >>download.txt \
+ && echo "https://raw.githubusercontent.com/tshr20180821/render-07/main/app/gpg" >>download.txt \
+ && time xargs -P2 -n1 curl -sSO <download.txt \
+ && chmod +x ./gpg \
  && mkdir -p /etc/apt/keyrings \
- && curl -fsSL 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xA2166B8DE8BDC3367D1901C11EE2FF37CA8DA16B' | /tmp/gpg --dearmor -o /etc/apt/keyrings/apt-fast.gpg \
+ && curl -fsSL 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xA2166B8DE8BDC3367D1901C11EE2FF37CA8DA16B' | ./gpg --dearmor -o /etc/apt/keyrings/apt-fast.gpg \
  && echo "deb [signed-by=/etc/apt/keyrings/apt-fast.gpg] http://ppa.launchpad.net/apt-fast/stable/ubuntu jammy main" | tee /etc/apt/sources.list.d/apt-fast.list \
- && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | /tmp/gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
+ && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | ./gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
  && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list \
- && apt-get -q update \
- && DEBIAN_FRONTEND=noninteractive apt-get -q install -y --no-install-recommends apt-fast time \
+ && time apt-get -q update \
+ && DEBIAN_FRONTEND=noninteractive time apt-get -q install -y --no-install-recommends apt-fast \
  && cp -f /tmp/apt-fast.conf /etc/ \
  && time apt-fast install -y --no-install-recommends \
   binutils \
@@ -86,14 +98,8 @@ RUN dpkg -l \
  && a2dissite -q 000-default.conf \
  && a2enmod -q authz_groupfile rewrite \
  && ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime \
- && time curl -sS \
-  -LO https://github.com/xerial/sqlite-jdbc/releases/download/$SQLITE_JDBC_VERSION/sqlite-jdbc-$SQLITE_JDBC_VERSION.jar \
-  -LO https://repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.9/slf4j-api-2.0.9.jar \
-  -LO https://repo1.maven.org/maven2/org/slf4j/slf4j-nop/2.0.9/slf4j-nop-2.0.9.jar \
-  -O https://raw.githubusercontent.com/tshr20180821/render-07/main/app/LogOperation.jar \
-  -o /tmp/phpMyAdmin.tar.xz https://files.phpmyadmin.net/phpMyAdmin/5.2.1/phpMyAdmin-5.2.1-all-languages.tar.xz \
- && time tar xf /tmp/phpMyAdmin.tar.xz --strip-components=1 -C /var/www/html/phpmyadmin \
- && rm /tmp/phpMyAdmin.tar.xz \
+ && time tar xf ./phpMyAdmin-5.2.1-all-languages --strip-components=1 -C /var/www/html/phpmyadmin \
+ && rm ./phpMyAdmin-5.2.1-all-languages ./download.txt \
  && chown www-data:www-data /var/www/html/phpmyadmin -R
 
 COPY ./config.inc.php /var/www/html/phpmyadmin/
