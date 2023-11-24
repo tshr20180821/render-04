@@ -92,6 +92,7 @@ RUN dpkg -l \
   pdo_mysql \
   mysqli \
   mbstring \
+  opcache \
   >/dev/null \
  && echo "npm install" \
  && time npm install \
