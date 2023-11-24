@@ -55,9 +55,12 @@ RUN dpkg -l \
  && echo "deb [signed-by=/etc/apt/keyrings/apt-fast.gpg] http://ppa.launchpad.net/apt-fast/stable/ubuntu jammy main" | tee /etc/apt/sources.list.d/apt-fast.list \
  && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | ./gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
  && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list \
+ && echo "apt-get -q update" \
  && time apt-get -q update \
+ && echo "apt-get -q install" \
  && time DEBIAN_FRONTEND=noninteractive apt-get -q install -y --no-install-recommends apt-fast \
  && cp -f /tmp/apt-fast.conf /etc/ \
+ && echo "apt-fast install" \
  && time apt-fast install -y --no-install-recommends \
   binutils \
   ca-certificates \
@@ -74,23 +77,37 @@ RUN dpkg -l \
   sasl2-bin \
   tzdata \
   zlib1g-dev \
+ && echo "pecl install apcu" \
  && time MAKEFLAGS="-j $(nproc)" pecl install apcu >/dev/null \
+ && echo "docker-php-ext-enable apcu" \
  && time docker-php-ext-enable apcu \
+ && echo "pecl install memcached" \
  && time MAKEFLAGS="-j $(nproc)" pecl install memcached --enable-memcached-sasl >/dev/null \
+ && echo "docker-php-ext-enable memcached" \
  && time docker-php-ext-enable memcached \
+ && echo "docker-php-ext-configure zip" \
  && time docker-php-ext-configure zip --with-zip >/dev/null \
+ && echo "docker-php-ext-install" \
  && time docker-php-ext-install -j$(nproc) \
   pdo_mysql \
   mysqli \
   mbstring \
   >/dev/null \
+ && echo "npm install" \
  && time npm install \
+ && echo "npm update -g" \
  && time npm update -g \
+ && echo "npm audit fix" \
  && time npm audit fix \
+ && echo "apt-get upgrade" \
  && time apt-get upgrade -y --no-install-recommends \
+ && echo "npm cache clean" \
  && time npm cache clean --force \
+ && echo "pecl clear-cache" \
  && time pecl clear-cache \
+ && echo "apt-get -q purge" \
  && time apt-get -q purge -y --auto-remove gcc libonig-dev make \
+ && echo "apt-get -q clean" \
  && time apt-get clean \
  && rm -rf /var/lib/apt/lists/* \
  && mkdir -p /var/www/html/auth \
@@ -98,6 +115,7 @@ RUN dpkg -l \
  && a2dissite -q 000-default.conf \
  && a2enmod -q authz_groupfile rewrite \
  && ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime \
+ && echo "tar xf" \
  && time tar xf ./phpMyAdmin-5.2.1-all-languages.tar.xz --strip-components=1 -C /var/www/html/phpmyadmin \
  && rm ./phpMyAdmin-5.2.1-all-languages.tar.xz ./download.txt \
  && chown www-data:www-data /var/www/html/phpmyadmin -R
