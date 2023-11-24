@@ -16,6 +16,7 @@ df -h
 ulimit -n
 apachectl -V
 java --version
+php -i
 
 tmp1=$(cat ./Dockerfile | head -n 1)
 export DOCKER_HUB_PHP_TAG=${tmp1:9}
