@@ -94,7 +94,7 @@ curl -sS -X POST -H "Authorization: Bearer ${SLACK_TOKEN}" \
 exec /usr/sbin/apache2 -DFOREGROUND &
 
 # for i in {1..60} ; do sleep 30s && ps aux ; done &
-while true; do; sleep 900s; ps aux; done &
+while true; do; sleep 900s && ps aux; done &
 
 export START_TIME=$(date +%s%3N)
 
