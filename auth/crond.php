@@ -40,7 +40,7 @@ function crond()
     $mc->setSaslAuthData('memcached', getenv('SASL_PASSWORD'));
     $mc->addServer('127.0.0.1', 11211);
     if ($mc->get('CHECK_APT') !== false) {
-        $log->info('CHECK_APT : memcached hit : ' . trim($mc->get('CHECK_APT'));
+        $log->info('CHECK_APT : memcached hit : ' . trim($mc->get('CHECK_APT')));
     } else {
         $log->info('CHECK_APT : memcached miss');
     }
