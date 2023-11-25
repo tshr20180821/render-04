@@ -119,8 +119,9 @@ function check_apt_update() {
                     }
                 });
             });
-        } catch (err) {
             logger.info('check_apt_update CHECK POINT 070');
+        } catch (err) {
+            logger.info('check_apt_update CHECK POINT 080');
             logger.warn(err.stack);
         }
     });
