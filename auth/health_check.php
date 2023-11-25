@@ -63,9 +63,13 @@ __HEREDOC__;
     $mc->addServer('127.0.0.1', 11211);
     if ($mc->get('CHECK_APT') !== false) {
         $apt_result = trim($mc->get('CHECK_APT'));
+    } else {
+        $log->info('CHECK_APT : none');
     }
     if ($mc->get('CHECK_NPM') !== false) {
         $npm_result = $mc->get('CHECK_NPM');
+    } else {
+        $log->info('CHECK_NPM : none');
     }
     $mc->quit();
 
