@@ -17,7 +17,7 @@ COPY ./index.html ./robots.txt /var/www/html/
 COPY --chmod=644 .htpasswd /var/www/html/
 COPY ./apache.conf /etc/apache2/sites-enabled/
 COPY ./apt-fast.conf /tmp/
-COPY ./app/package.json /usr/src/app
+COPY ./app/package.json ./
 
 ENV SQLITE_JDBC_VERSION="3.44.0.0"
 
@@ -122,9 +122,10 @@ RUN dpkg -l \
  && chown www-data:www-data /var/www/html/phpmyadmin -R
 
 COPY ./config.inc.php /var/www/html/phpmyadmin/
-COPY ./app/* /usr/src/app/
-COPY --chmod=755 ./app/*.sh /usr/src/app/
-COPY ./Dockerfile /usr/src/app/
+COPY ./app/* ./
+COPY --chmod=755 ./app/*.sh ./
+COPY ./Dockerfile ./
+COPY --from=memcached:latest /usr/local/bin/memcached ./
 
 COPY ./auth/*.php /var/www/html/auth/
 
