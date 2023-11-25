@@ -62,14 +62,16 @@ __HEREDOC__;
     $mc->setSaslAuthData('memcached', getenv('SASL_PASSWORD'));
     $mc->addServer('127.0.0.1', 11211);
     if ($mc->get('CHECK_APT') !== false) {
+        $log->info('CHECK_APT : memcached hit');
         $apt_result = trim($mc->get('CHECK_APT'));
     } else {
-        $log->info('CHECK_APT : none');
+        $log->info('CHECK_APT : memcached miss');
     }
     if ($mc->get('CHECK_NPM') !== false) {
+        $log->info('CHECK_NPM : memcached hit');
         $npm_result = $mc->get('CHECK_NPM');
     } else {
-        $log->info('CHECK_NPM : none');
+        $log->info('CHECK_NPM : memcached miss');
     }
     $mc->quit();
 
