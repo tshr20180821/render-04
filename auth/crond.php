@@ -35,6 +35,22 @@ function crond()
         return;
     }
     
+    $mc = new Memcached();
+    $mc->setOption(Memcached::OPT_BINARY_PROTOCOL, true);
+    $mc->setSaslAuthData('memcached', getenv('SASL_PASSWORD'));
+    $mc->addServer('127.0.0.1', 11211);
+    if ($mc->get('CHECK_APT') !== false) {
+        $log->info('CHECK_APT : memcached hit : ' . trim($mc->get('CHECK_APT'));
+    } else {
+        $log->info('CHECK_APT : memcached miss');
+    }
+    if ($mc->get('CHECK_NPM') !== false) {
+        $log->info('CHECK_NPM : memcached hit : ' . $mc->get('CHECK_NPM'));
+    } else {
+        $log->info('CHECK_NPM : memcached miss');
+    }
+    $mc->quit();
+    
     clearstatcache();
     if (!file_exists('/tmp/m_cron.db')) {
         init_sqlite();
