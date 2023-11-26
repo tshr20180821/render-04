@@ -120,6 +120,23 @@ function check_apt_update() {
                 });
             });
             logger.info('check_apt_update CHECK POINT 070');
+            if (check_apt == '') {
+                const dt = new Date();
+                const datetime = dt.getFullYear() + '-' + ('0' + (dt.getMonth() + 1)).slice(-2) + '-' + ('0' + dt.getDate()).slice(-2) + ' ' +
+                   ('0' + dt.getHours()).slice(-2) + ':' + ('0' + dt.getMinutes()).slice(-2);
+                var stdout = execSync('apt-get update');
+                stdout = execSync('apt-get -s upgrade | grep upgraded');
+                check_apt = datetime + ' ' + stdout.toString();
+                mc.set('CHECK_APT', check_apt, {
+                    expires: 24 * 60 * 60
+                }, function (err, _) {
+                    if (err) {
+                        logger.warn(err.stack);
+                    } else {
+                        logger.info('memcached set CHECK_APT : ' + check_apt);
+                    }
+                });
+            }
         } catch (err) {
             logger.info('check_apt_update CHECK POINT 080');
             logger.warn(err.stack);
@@ -156,6 +173,22 @@ function check_npm_update() {
                     }
                 });
             });
+            if (check_npm == '') {
+                const dt = new Date();
+                const datetime = dt.getFullYear() + '-' + ('0' + (dt.getMonth() + 1)).slice(-2) + '-' + ('0' + dt.getDate()).slice(-2) + ' ' +
+                   ('0' + dt.getHours()).slice(-2) + ':' + ('0' + dt.getMinutes()).slice(-2);
+                var stdout = execSync('npm outdated');
+                check_npm = datetime + ' ' + (stdout.toString().length == 0 ? "none" : stdout.toString());
+                mc.set('CHECK_NPM', check_npm, {
+                    expires: 24 * 60 * 60
+                }, function (err, _) {
+                    if (err) {
+                        logger.warn(err.stack);
+                    } else {
+                        logger.info('memcached set CHECK_NPM : ' + check_npm);
+                    }
+                });
+            }
         } catch (err) {
             logger.warn(err.stack);
         }
