@@ -19,7 +19,7 @@ COPY ./apache.conf /etc/apache2/sites-enabled/
 COPY ./apt-fast.conf /tmp/
 COPY ./app/package.json ./
 
-ENV SQLITE_JDBC_VERSION="3.44.0.0"
+ENV SQLITE_JDBC_VERSION="3.44.1.0"
 
 # https://github.com/xerial/sqlite-jdbc/releases/download/$SQLITE_JDBC_VERSION/sqlite-jdbc-$SQLITE_JDBC_VERSION.jar
 # https://files.phpmyadmin.net/phpMyAdmin/5.2.1/phpMyAdmin-5.2.1-all-languages.tar.xz
