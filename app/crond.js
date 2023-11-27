@@ -6,10 +6,9 @@ const logger = mu.get_logger();
 const https = require("https");
 const url = 'https://' + process.env.RENDER_EXTERNAL_HOSTNAME + '/auth/crond.php';
 // const fs = require('fs');
-const {
-    execSync
-} = require('child_process');
+const { execSync } = require('child_process');
 const memjs = require('memjs');
+const { setTimeout } = require('timers/promises');
 
 const CronJob = require('cron').CronJob;
 
@@ -120,6 +119,8 @@ function check_apt_update() {
                 });
             });
             logger.info('check_apt_update CHECK POINT 070');
+            setTimeout(20000);
+            logger.info('check_apt_update CHECK POINT 080');
             if (check_apt == '') {
                 const dt = new Date();
                 const datetime = dt.getFullYear() + '-' + ('0' + (dt.getMonth() + 1)).slice(-2) + '-' + ('0' + dt.getDate()).slice(-2) + ' ' +
@@ -173,6 +174,7 @@ function check_npm_update() {
                     }
                 });
             });
+            setTimeout(20000);
             if (check_npm == '') {
                 const dt = new Date();
                 const datetime = dt.getFullYear() + '-' + ('0' + (dt.getMonth() + 1)).slice(-2) + '-' + ('0' + dt.getDate()).slice(-2) + ' ' +
