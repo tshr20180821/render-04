@@ -119,7 +119,8 @@ function check_apt_update() {
                 });
             });
             logger.info('check_apt_update CHECK POINT 070');
-            setTimeout(20000);
+            /*
+            await setTimeout(20000);
             logger.info('check_apt_update CHECK POINT 080');
             if (check_apt == '') {
                 const dt = new Date();
@@ -138,6 +139,7 @@ function check_apt_update() {
                     }
                 });
             }
+            */
         } catch (err) {
             logger.info('check_apt_update CHECK POINT 080');
             logger.warn(err.stack);
@@ -174,7 +176,8 @@ function check_npm_update() {
                     }
                 });
             });
-            setTimeout(20000);
+            /*
+            await setTimeout(20000);
             if (check_npm == '') {
                 const dt = new Date();
                 const datetime = dt.getFullYear() + '-' + ('0' + (dt.getMonth() + 1)).slice(-2) + '-' + ('0' + dt.getDate()).slice(-2) + ' ' +
@@ -191,6 +194,7 @@ function check_npm_update() {
                     }
                 });
             }
+            */
         } catch (err) {
             logger.warn(err.stack);
         }
