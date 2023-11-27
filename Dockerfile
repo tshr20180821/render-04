@@ -59,7 +59,7 @@ RUN dpkg -l \
  && echo "apt-get -q update" \
  && time apt-get -q update \
  && echo "apt-get -q install" \
- && time DEBIAN_FRONTEND=noninteractive apt-get -q install -y --no-install-recommends apt-fast \
+ && time DEBIAN_FRONTEND=noninteractive apt-get -q install -y --no-install-recommends apt-fast curl/bookworm-backports \
  && cp -f /tmp/apt-fast.conf /etc/ \
  && echo "apt-fast install" \
  && time apt-fast install -y --no-install-recommends \
