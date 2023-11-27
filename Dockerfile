@@ -1,198 +1,133 @@
-// package : cron
+FROM php:8.2-apache
 
-const mu = require('./MyUtils.js');
-const logger = mu.get_logger();
+EXPOSE 80
 
-const https = require("https");
-const url = 'https://' + process.env.RENDER_EXTERNAL_HOSTNAME + '/auth/crond.php';
-// const fs = require('fs');
-const { execSync } = require('child_process');
-const memjs = require('memjs');
-const { setTimeout } = require('timers/promises');
+SHELL ["/bin/bash", "-c"]
 
-const CronJob = require('cron').CronJob;
+WORKDIR /usr/src/app
 
-try {
-    const job = new CronJob(
-        '0 * * * * *',
-        function () {
-            logger.info('START');
+ENV CFLAGS="-O2 -march=native -mtune=native -fomit-frame-pointer"
+ENV CXXFLAGS="$CFLAGS"
+ENV LDFLAGS="-fuse-ld=gold"
+ENV NODE_ENV=production
+ENV NODE_MAJOR=20
 
-            try {
-                var http_options = {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': 'Basic ' + Buffer.from(process.env.BASIC_USER + ':' + process.env.BASIC_PASSWORD).toString('base64'),
-                        'User-Agent': 'cron ' + process.env.DEPLOY_DATETIME + ' ' + process.pid,
-                        'X-Deploy-DateTime': process.env.DEPLOY_DATETIME
-                    }
-                };
-                http_options.agent = new https.Agent({
-                    keepAlive: false
-                });
+COPY ./php.ini ${PHP_INI_DIR}/
+COPY ./index.html ./robots.txt /var/www/html/
+COPY --chmod=644 .htpasswd /var/www/html/
+COPY ./apache.conf /etc/apache2/sites-enabled/
+COPY ./apt-fast.conf /tmp/
+COPY ./app/package.json ./
 
-                var data_buffer = [];
-                https.request(url, http_options, (res) => {
-                    res.on('data', (chunk) => {
-                        data_buffer.push(chunk);
-                    });
-                    res.on('end', () => {
-                        logger.info('RESPONSE BODY : ' + Buffer.concat(data_buffer).toString().substring(0, 100));
-                        var num = Number(Buffer.concat(data_buffer));
-                        if (!Number.isNaN(num) && Number(process.env.DEPLOY_DATETIME) < num) {
-                            logger.warn('CRON STOP');
-                            this.stop();
-                        }
-                    });
-                    res.on('error', (err) => {
-                        logger.warn(err.toString());
-                    });
+ENV SQLITE_JDBC_VERSION="3.44.0.0"
 
-                    logger.info('HTTP STATUS CODE : ' + res.statusCode + ' ' + process.env.RENDER_EXTERNAL_HOSTNAME);
+# https://github.com/xerial/sqlite-jdbc/releases/download/$SQLITE_JDBC_VERSION/sqlite-jdbc-$SQLITE_JDBC_VERSION.jar
+# https://files.phpmyadmin.net/phpMyAdmin/5.2.1/phpMyAdmin-5.2.1-all-languages.tar.xz
+# https://repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.9/slf4j-api-2.0.9.jar
+# https://repo1.maven.org/maven2/org/slf4j/slf4j-nop/2.0.9/slf4j-nop-2.0.9.jar
 
-                    if (res.statusCode != 200) {
-                        // https://process.env.RENDER_EXTERNAL_HOSTNAME/cdn-cgi/trace
-                        mu.send_slack_message('HTTP STATUS CODE : ' + res.statusCode + ' ' + process.env.RENDER_EXTERNAL_HOSTNAME);
-                    }
-                }).end();
-                if (Date.now() - process.env.START_TIME > 5 * 60 * 1000) {
-                    if ((new Date()).getMinutes() % 2 == 0) {
-                        check_apt_update();
-                    } else {
-                        check_npm_update();
-                    }
-                }
-            } catch (err) {
-                logger.warn(err.stack);
-            }
-            // global.gc();
-            const memory_usage = process.memoryUsage();
-            var message = 'FINISH Heap Total : ' +
-                Math.floor(memory_usage.heapTotal / 1024).toLocaleString() +
-                'KB Used : ' +
-                Math.floor(memory_usage.heapUsed / 1024).toLocaleString() + 'KB';
-            logger.info(message);
-        },
-        null,
-        true,
-        'Asia/Tokyo'
-    );
-    job.start();
-} catch (err) {
-    logger.warn(err.stack);
-}
+# binutils : strings
+# ca-certificates : node.js
+# curl : node.js
+# default-jre-headless : java
+# libmemcached-dev : pecl memcached
+# libonig-dev : mbstring
+# libsasl2-modules : sasl
+# libsqlite3-0 : php sqlite
+# libssl-dev : pecl memcached
+# libzip-dev : docker-php-ext-configure zip --with-zip
+# memcached : memcached
+# nodejs : nodejs
+# sasl2-bin : sasl
+# tzdata : ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
+# zlib1g-dev : pecl memcached
+RUN dpkg -l \
+ && echo "https://raw.githubusercontent.com/tshr20180821/render-07/main/app/sqlite-jdbc-$SQLITE_JDBC_VERSION.jar" >download.txt \
+ && echo "https://raw.githubusercontent.com/tshr20180821/render-07/main/app/phpMyAdmin-5.2.1-all-languages.tar.xz" >>download.txt \
+ && echo "https://raw.githubusercontent.com/tshr20180821/render-07/main/app/slf4j-api-2.0.9.jar" >>download.txt \
+ && echo "https://raw.githubusercontent.com/tshr20180821/render-07/main/app/slf4j-nop-2.0.9.jar" >>download.txt \
+ && echo "https://raw.githubusercontent.com/tshr20180821/render-07/main/app/LogOperation.jar" >>download.txt \
+ && echo "https://raw.githubusercontent.com/tshr20180821/render-07/main/app/gpg" >>download.txt \
+ && time xargs -P2 -n1 curl -sSO <download.txt \
+ && chmod +x ./gpg \
+ && mkdir -p /etc/apt/keyrings \
+ && curl -fsSL 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xA2166B8DE8BDC3367D1901C11EE2FF37CA8DA16B' | ./gpg --dearmor -o /etc/apt/keyrings/apt-fast.gpg \
+ && echo "deb [signed-by=/etc/apt/keyrings/apt-fast.gpg] http://ppa.launchpad.net/apt-fast/stable/ubuntu jammy main" | tee /etc/apt/sources.list.d/apt-fast.list \
+ && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | ./gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
+ && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list \
+ && echo "apt-get -q update" \
+ && time apt-get -q update \
+ && echo "apt-get -q install" \
+ && time DEBIAN_FRONTEND=noninteractive apt-get -q install -y --no-install-recommends apt-fast \
+ && cp -f /tmp/apt-fast.conf /etc/ \
+ && echo "apt-fast install" \
+ && time apt-fast install -y --no-install-recommends \
+  binutils \
+  ca-certificates \
+  curl \
+  default-jre-headless \
+  libmemcached-dev \
+  libonig-dev \
+  libsasl2-modules \
+  libsqlite3-0 \
+  libssl-dev \
+  libzip-dev \
+  memcached \
+  nodejs \
+  sasl2-bin \
+  tzdata \
+  zlib1g-dev \
+ && echo "pecl install apcu" \
+ && time MAKEFLAGS="-j $(nproc)" pecl install apcu >/dev/null \
+ && echo "docker-php-ext-enable apcu" \
+ && time docker-php-ext-enable apcu \
+ && echo "pecl install memcached" \
+ && time MAKEFLAGS="-j $(nproc)" pecl install memcached --enable-memcached-sasl >/dev/null \
+ && echo "docker-php-ext-enable memcached" \
+ && time docker-php-ext-enable memcached \
+ && echo "docker-php-ext-configure zip" \
+ && time docker-php-ext-configure zip --with-zip >/dev/null \
+ && echo "docker-php-ext-install" \
+ && time docker-php-ext-install -j$(nproc) \
+  pdo_mysql \
+  mysqli \
+  mbstring \
+  opcache \
+  >/dev/null \
+ && echo "npm install" \
+ && time npm install \
+ && echo "npm update -g" \
+ && time npm update -g \
+ && echo "npm audit fix" \
+ && time npm audit fix \
+ && echo "apt-get upgrade" \
+ && time apt-get upgrade -y --no-install-recommends \
+ && echo "npm cache clean" \
+ && time npm cache clean --force \
+ && echo "pecl clear-cache" \
+ && time pecl clear-cache \
+ && echo "apt-get -q purge" \
+ && time apt-get -q purge -y --auto-remove gcc libonig-dev make \
+ && echo "apt-get -q clean" \
+ && time apt-get clean \
+ && rm -rf /var/lib/apt/lists/* \
+ && mkdir -p /var/www/html/auth \
+ && mkdir -p /var/www/html/phpmyadmin \
+ && a2dissite -q 000-default.conf \
+ && a2enmod -q authz_groupfile rewrite \
+ && ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime \
+ && echo "tar xf" \
+ && time tar xf ./phpMyAdmin-5.2.1-all-languages.tar.xz --strip-components=1 -C /var/www/html/phpmyadmin \
+ && rm ./phpMyAdmin-5.2.1-all-languages.tar.xz ./download.txt \
+ && chown www-data:www-data /var/www/html/phpmyadmin -R
 
-function check_apt_update() {
-    new Promise(() => {
-       try {
-            logger.info('START check_apt_update');
-            const mc = memjs.Client.create();
-            logger.info('check_apt_update CHECK POINT 010');
-            var check_apt = '';
-            mc.get('CHECK_APT', function (err, val) {
-                logger.info('check_apt_update CHECK POINT 020');
-                if (err) {
-                    logger.info('check_apt_update CHECK POINT 030');
-                    logger.warn(err.stack);
-                }
-                logger.info('check_apt_update CHECK POINT 040');
-                if (val != null) {
-                    logger.info('check_apt_update CHECK POINT 050');
-                    logger.info('memcached hit CHECK_APT : ' + val);
-                    return;
-                }
-                logger.info('check_apt_update CHECK POINT 060');
-                const dt = new Date();
-                const datetime = dt.getFullYear() + '-' + ('0' + (dt.getMonth() + 1)).slice(-2) + '-' + ('0' + dt.getDate()).slice(-2) + ' ' +
-                   ('0' + dt.getHours()).slice(-2) + ':' + ('0' + dt.getMinutes()).slice(-2);
-                var stdout = execSync('apt-get update');
-                stdout = execSync('apt-get -s upgrade | grep upgraded');
-                check_apt = datetime + ' ' + stdout.toString();
-                mc.set('CHECK_APT', check_apt, {
-                    expires: 24 * 60 * 60
-                }, function (err, _) {
-                    if (err) {
-                        logger.warn(err.stack);
-                    } else {
-                        logger.info('memcached set CHECK_APT : ' + check_apt);
-                    }
-                });
-            });
-            logger.info('check_apt_update CHECK POINT 070');
-            setTimeout(20000);
-            logger.info('check_apt_update CHECK POINT 080');
-            if (check_apt == '') {
-                const dt = new Date();
-                const datetime = dt.getFullYear() + '-' + ('0' + (dt.getMonth() + 1)).slice(-2) + '-' + ('0' + dt.getDate()).slice(-2) + ' ' +
-                   ('0' + dt.getHours()).slice(-2) + ':' + ('0' + dt.getMinutes()).slice(-2);
-                var stdout = execSync('apt-get update');
-                stdout = execSync('apt-get -s upgrade | grep upgraded');
-                check_apt = datetime + ' ' + stdout.toString();
-                mc.set('CHECK_APT', check_apt, {
-                    expires: 24 * 60 * 60
-                }, function (err, _) {
-                    if (err) {
-                        logger.warn(err.stack);
-                    } else {
-                        logger.info('memcached set CHECK_APT : ' + check_apt);
-                    }
-                });
-            }
-        } catch (err) {
-            logger.info('check_apt_update CHECK POINT 080');
-            logger.warn(err.stack);
-        }
-    });
-}
+COPY ./config.inc.php /var/www/html/phpmyadmin/
+COPY ./app/* ./
+COPY --chmod=755 ./app/*.sh ./
+COPY ./Dockerfile ./
+COPY --from=memcached:latest /usr/local/bin/memcached ./
 
-function check_npm_update() {
-    new Promise(() => {
-       try {
-            logger.info('START check_npm_update');
-            const mc = memjs.Client.create();
-            var check_npm = '';
-            mc.get('CHECK_NPM', function (err, val) {
-                if (err) {
-                    logger.warn(err.stack);
-                }
-                if (val != null) {
-                    logger.info('memcached hit CHECK_NPM : ' + val);
-                    return;
-                }
-                const dt = new Date();
-                const datetime = dt.getFullYear() + '-' + ('0' + (dt.getMonth() + 1)).slice(-2) + '-' + ('0' + dt.getDate()).slice(-2) + ' ' +
-                   ('0' + dt.getHours()).slice(-2) + ':' + ('0' + dt.getMinutes()).slice(-2);
-                var stdout = execSync('npm outdated');
-                check_npm = datetime + ' ' + (stdout.toString().length == 0 ? "none" : stdout.toString());
-                mc.set('CHECK_NPM', check_npm, {
-                    expires: 24 * 60 * 60
-                }, function (err, _) {
-                    if (err) {
-                        logger.warn(err.stack);
-                    } else {
-                        logger.info('memcached set CHECK_NPM : ' + check_npm);
-                    }
-                });
-            });
-            setTimeout(20000);
-            if (check_npm == '') {
-                const dt = new Date();
-                const datetime = dt.getFullYear() + '-' + ('0' + (dt.getMonth() + 1)).slice(-2) + '-' + ('0' + dt.getDate()).slice(-2) + ' ' +
-                   ('0' + dt.getHours()).slice(-2) + ':' + ('0' + dt.getMinutes()).slice(-2);
-                var stdout = execSync('npm outdated');
-                check_npm = datetime + ' ' + (stdout.toString().length == 0 ? "none" : stdout.toString());
-                mc.set('CHECK_NPM', check_npm, {
-                    expires: 24 * 60 * 60
-                }, function (err, _) {
-                    if (err) {
-                        logger.warn(err.stack);
-                    } else {
-                        logger.info('memcached set CHECK_NPM : ' + check_npm);
-                    }
-                });
-            }
-        } catch (err) {
-            logger.warn(err.stack);
-        }
-    });
-}
+COPY ./auth/*.php /var/www/html/auth/
+
+# CMD ["bash","/usr/src/app/start.sh"]
+ENTRYPOINT ["bash","/usr/src/app/start.sh"]
