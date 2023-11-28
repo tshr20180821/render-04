@@ -8,7 +8,7 @@ const url = 'https://' + process.env.RENDER_EXTERNAL_HOSTNAME + '/auth/crond.php
 // const fs = require('fs');
 const { execSync } = require('child_process');
 const memjs = require('memjs');
-const { setTimeout } = require('timers/promises');
+// const { setTimeout } = require('timers/promises');
 
 const CronJob = require('cron').CronJob;
 
