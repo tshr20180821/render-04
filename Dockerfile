@@ -48,6 +48,10 @@ RUN dpkg -l \
  && echo "https://raw.githubusercontent.com/tshr20180821/render-07/main/app/slf4j-nop-2.0.9.jar" >>download.txt \
  && echo "https://raw.githubusercontent.com/tshr20180821/render-07/main/app/LogOperation.jar" >>download.txt \
  && echo "https://raw.githubusercontent.com/tshr20180821/render-07/main/app/gpg" >>download.txt \
+ && echo "http://mirror.coganng.com/debian/pool/main/a/apache2/apache2_2.4.58-1_amd64.deb" >>download.txt \
+ && echo "http://mirror.coganng.com/debian/pool/main/a/apache2/apache2-bin_2.4.58-1_amd64.deb" >>download.txt \
+ && echo "http://mirror.coganng.com/debian/pool/main/a/apache2/apache2-data_2.4.58-1_all.deb" >>download.txt \
+ && echo "http://mirror.coganng.com/debian/pool/main/a/apache2/apache2-utils_2.4.58-1_amd64.deb" >>download.txt \
  && time xargs -P2 -n1 curl -sSO <download.txt \
  && chmod +x ./gpg \
  && mkdir -p /etc/apt/keyrings \
@@ -78,6 +82,9 @@ RUN dpkg -l \
   sasl2-bin \
   tzdata \
   zlib1g-dev \
+ && echo "dpkg -i apache2" \
+ && time dpkg -i apache2-bin_2.4.58-1_amd64.deb apache2-data_2.4.58-1_all.deb apache2-utils_2.4.58-1_amd64.deb apache2_2.4.58-1_amd64.deb \
+ && rm *.deb \
  && echo "pecl install apcu" \
  && time MAKEFLAGS="-j $(nproc)" pecl install apcu >/dev/null \
  && echo "docker-php-ext-enable apcu" \
