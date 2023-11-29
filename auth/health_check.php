@@ -61,24 +61,22 @@ __HEREDOC__;
     $mc->setOption(Memcached::OPT_BINARY_PROTOCOL, true);
     $mc->setSaslAuthData('memcached', getenv('SASL_PASSWORD'));
     $mc->addServer('127.0.0.1', 11211);
-    if ($mc->get('CHECK_APT') !== false) {
-        $log->info('CHECK_APT : memcached hit');
-        $apt_result = trim($mc->get('CHECK_APT'));
-    } else {
-        $log->info('CHECK_APT : memcached miss');
-        $rc = $mc->getResultCode();
-        $log->info('memcached results : ' . $rc);
-        if ($rc != Memcached::RES_NOTFOUND) {
-            $mc->delete('CHECK_APT');
-            $log->info('CHECK_APT : memcached delete');
-            $log->info('memcached results : ' . $mc->getResultCode());
+    foreach (['CHECK_APT', 'CHECK_NPM'] as &$key_name) {
+        if ($mc->get($key_name) !== false) {
+            $log->info($key_name . ' : memcached hit');
+            switch ($key_name) {
+                case 'CHECK_APT':
+                    $apt_result = trim($mc->get($key_name));
+                    break;
+                case 'CHECK_NPM':
+                    $npm_result = trim($mc->get($key_name));
+                    break;
+            }
+        } else {
+            $log->info($key_name . ' : memcached miss');
+            $rc = $mc->getResultCode();
+            $log->info('memcached results : ' . $rc);
         }
-    }
-    if ($mc->get('CHECK_NPM') !== false) {
-        $log->info('CHECK_NPM : memcached hit');
-        $npm_result = $mc->get('CHECK_NPM');
-    } else {
-        $log->info('CHECK_NPM : memcached miss');
     }
     $mc->quit();
 
