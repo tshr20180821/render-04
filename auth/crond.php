@@ -1,205 +1,421 @@
-// package : cron
+<?php
 
-const mu = require('./MyUtils.js');
-const logger = mu.get_logger();
+include('/usr/src/app/log.php');
 
-const https = require("https");
-const url = 'https://' + process.env.RENDER_EXTERNAL_HOSTNAME + '/auth/crond.php';
-// const fs = require('fs');
-const { execSync } = require('child_process');
-const memjs = require('memjs');
-// const { setTimeout } = require('timers/promises');
+$log = new Log();
 
-const CronJob = require('cron').CronJob;
+$requesturi = $_SERVER['REQUEST_URI'];
+$time_start = microtime(true);
+$log->info("START {$requesturi}");
 
 try {
-    const job = new CronJob(
-        '0 * * * * *',
-        function () {
-            logger.info('START');
+    crond();
+    header("Content-Type: text/plain");
+    echo $_ENV['DEPLOY_DATETIME'];
+} catch (Exception $ex) {
+    $log->warn($ex->getMessage());
+}
 
-            try {
-                var http_options = {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': 'Basic ' + Buffer.from(process.env.BASIC_USER + ':' + process.env.BASIC_PASSWORD).toString('base64'),
-                        'User-Agent': 'cron ' + process.env.DEPLOY_DATETIME + ' ' + process.pid,
-                        'X-Deploy-DateTime': process.env.DEPLOY_DATETIME
-                    }
-                };
-                http_options.agent = new https.Agent({
-                    keepAlive: false
-                });
+$log->info('FINISH ' . substr((microtime(true) - $time_start), 0, 7) . 's');
 
-                var data_buffer = [];
-                const req = https.request(url, http_options, (res) => {
-                    res.on('data', (chunk) => {
-                        data_buffer.push(chunk);
-                    });
-                    res.on('end', () => {
-                        logger.info('RESPONSE BODY : ' + Buffer.concat(data_buffer).toString().substring(0, 100));
-                        var num = Number(Buffer.concat(data_buffer));
-                        if (!Number.isNaN(num) && Number(process.env.DEPLOY_DATETIME) < num) {
-                            logger.warn('CRON STOP');
-                            this.stop();
-                        }
-                    });
-                    res.on('error', (err) => {
-                        logger.warn(err.toString());
-                    });
+exit();
 
-                    logger.info('HTTP STATUS CODE : ' + res.statusCode + ' ' + process.env.RENDER_EXTERNAL_HOSTNAME);
+function crond()
+{
+    global $log;
 
-                    if (res.statusCode != 200) {
-                        // https://process.env.RENDER_EXTERNAL_HOSTNAME/cdn-cgi/trace
-                        mu.send_slack_message('HTTP STATUS CODE : ' + res.statusCode + ' ' + process.env.RENDER_EXTERNAL_HOSTNAME);
-                    }
-                });
-                console.log(req);
-                req.end();
+    $log->info('BEGIN');
 
-                if (Date.now() - process.env.START_TIME > 5 * 60 * 1000) {
-                    if ((new Date()).getMinutes() % 2 == 0) {
-                        check_apt_update();
-                    } else {
-                        check_npm_update();
+    if ($_SERVER['HTTP_X_DEPLOY_DATETIME'] != $_ENV['DEPLOY_DATETIME']) {
+        $log->warn('VERSION UNMATCH ' . $_SERVER['HTTP_X_DEPLOY_DATETIME']);
+        return;
+    }
+
+    if (check_duplicate() == false) {
+        return;
+    }
+
+    $mc = new Memcached();
+    $mc->setOption(Memcached::OPT_BINARY_PROTOCOL, true);
+    $mc->setSaslAuthData('memcached', getenv('SASL_PASSWORD'));
+    $mc->addServer('127.0.0.1', 11211);
+    foreach (['CHECK_APT', 'CHECK_NPM'] as &$key_name) {
+        if ($mc->get($key_name) !== false) {
+            $log->info($key_name . ' : memcached hit');
+        } else {
+            $log->info($key_name . ' : memcached miss');
+            $rc = $mc->getResultCode();
+            $log->info('memcached results : ' . $rc);
+            if ($rc != Memcached::RES_NOTFOUND) {
+                $mc->delete($key_name);
+                $log->info($key_name . ' : memcached delete');
+                $log->info('memcached results : ' . $mc->getResultCode());
+            }
+        }
+    }
+    $mc->quit();
+
+    clearstatcache();
+    if (!file_exists('/tmp/m_cron.db')) {
+        init_sqlite();
+    }
+
+    $sql_select = <<< __HEREDOC__
+SELECT M1.schedule
+      ,M1.uri
+      ,M1.method
+      ,M1.authentication
+      ,M1.headers
+      ,M1.post_data
+  FROM m_cron M1
+ ORDER BY M1.uri
+__HEREDOC__;
+
+    $timestamp = time();
+
+    $log->info('cron target time : ' . date('Y/m/d H:i', $timestamp));
+
+    $format = [];
+    $format[0] = 'i';
+    $format[1] = 'H';
+    $format[2] = 'd';
+    $format[3] = 'm';
+    $format[4] = 'D';
+
+    $urls = [];
+
+    $tasks = [];
+
+    $pdo = new PDO('sqlite:/tmp/m_cron.db');
+
+    $statement = $pdo->prepare($sql_select);
+    $rc = $statement->execute();
+    $results = $statement->fetchAll();
+
+    foreach ($results as $row) {
+        $tasks[] = array($row['schedule'], $row['uri'], $row['method'], $row['authentication'], $row['headers'], $row['post_data']);
+    }
+
+    $pdo = null;
+
+    $log_data = [];
+    foreach ($tasks as list($schedules, $uri, $method, $authentication, $headers, $post_data)) {
+        // $log->info($schedules . ' ' . $uri);
+        $log_data[] = $schedules . ' ' . $uri;
+        $schedule = explode(' ', $schedules);
+
+        if (count($schedule) != 5) {
+            continue;
+        }
+
+        for ($i = 0; $i < 5; $i++) {
+            $is_execute = false;
+            $tmp1 = explode(',', $schedule[$i]);
+            for ($j = 0; $j < count($tmp1); $j++) {
+                if ($tmp1[$j] === '*') {
+                    $is_execute = true;
+                    break;
+                }
+
+                if (str_pad($tmp1[$j], 2, '0', STR_PAD_LEFT) === date($format[$i], $timestamp)) {
+                    $is_execute = true;
+                    break;
+                }
+
+                if ($i === 4) {
+                    continue;
+                }
+
+                // m-n
+                $tmp2 = explode('-', $tmp1[$j]);
+                if (count($tmp2) === 2) {
+                    $tmp3 = (int)date($format[$i], $timestamp);
+                    if ((int)$tmp2[0] <= $tmp3 && $tmp3 <= (int)$tmp2[1]) {
+                        $is_execute = true;
+                        break;
                     }
                 }
-            } catch (err) {
-                logger.warn(err.stack);
+
+                // */n
+                $tmp2 = explode('*/', $tmp1[$j]);
+                if (count($tmp2) === 2) {
+                    if ((int)date($format[$i], $timestamp) % (int)$tmp2[1] === 0) {
+                        $is_execute = true;
+                        break;
+                    }
+                }
             }
-            // global.gc();
-            const memory_usage = process.memoryUsage();
-            var message = 'FINISH Heap Total : ' +
-                Math.floor(memory_usage.heapTotal / 1024).toLocaleString() +
-                'KB Used : ' +
-                Math.floor(memory_usage.heapUsed / 1024).toLocaleString() + 'KB';
-            logger.info(message);
-        },
-        null,
-        true,
-        'Asia/Tokyo'
+            if ($is_execute === false) {
+                break;
+            }
+        }
+        if ($is_execute === false) {
+            continue;
+        }
+
+        // execute
+        $options = [
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_USERAGENT => date('Y/m/d H:i', $timestamp),
+        ];
+
+        if (strlen($headers) > 0) {
+            $options += [CURLOPT_HTTPHEADER => unserialize(base64_decode($headers))];
+        }
+        if (strlen($authentication) > 0) {
+            $options += [CURLOPT_USERPWD => base64_encode($authentication)];
+        }
+
+        if ($method == 'POST') {
+            if (strlen($post_data) > 0) {
+                $options += [CURLOPT_POST => true,
+                             CURLOPT_POSTFIELDS => unserialize(base64_decode($post_data)),
+                            ];
+            }
+        }
+        $urls[$uri] = $options;
+    }
+
+    if (count($urls) == 0) {
+        $log->info('NO TARGET');
+        return;
+    }
+    $log->info(print_r($log_data, true));
+
+    $multi_options = [
+        CURLMOPT_PIPELINING => CURLPIPE_MULTIPLEX,
+        CURLMOPT_MAX_HOST_CONNECTIONS => 20,
+        CURLMOPT_MAXCONNECTS => 20,
+    ];
+
+    $log->info(print_r($urls, true));
+
+    get_contents_multi($urls, $multi_options);
+}
+
+function check_duplicate()
+{
+    global $log;
+
+    $log->info('BEGIN');
+
+    $time = time();
+
+    clearstatcache();
+    $lock_file = '/tmp/crond_php_' . date('i', $time);
+    if (file_exists($lock_file) == true && ($time - filemtime($lock_file)) < 300) {
+        $log->info('EXISTS LOCK FILE');
+        return false;
+    }
+    touch($lock_file);
+
+    $pdo = get_pdo();
+
+    // $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+    $pdo->beginTransaction();
+
+    $sql_update = <<< __HEREDOC__
+UPDATE m_server
+   SET update_time = NOW()
+ WHERE server_name = :b_server_name
+   AND processed_minute_one_digit = :b_processed_minute_one_digit
+   AND update_time < NOW() - INTERVAL 5 MINUTE
+__HEREDOC__;
+
+    $statement_update = $pdo->prepare($sql_update);
+
+    $statement_update->execute([
+        ':b_server_name' => $_ENV['RENDER_EXTERNAL_HOSTNAME'],
+        ':b_processed_minute_one_digit' => (int)date('i', $time) % 10,
+    ]);
+
+    if ($statement_update->rowCount() != 1) {
+        $pdo->rollBack();
+        $pdo = null;
+        $log->warn('ROLLBACK');
+        return false;
+    }
+
+    $pdo->commit();
+    $pdo = null;
+    $log->info('COMMIT');
+    return true;
+}
+
+function get_pdo()
+{
+    global $log;
+
+    $log->info('BEGIN');
+
+    $dsn = "mysql:host={$_ENV['DB_SERVER']};dbname={$_ENV['DB_NAME']}";
+    $options = array(
+      PDO::MYSQL_ATTR_SSL_CA => '/etc/ssl/certs/ca-certificates.crt',
     );
-    job.start();
-} catch (err) {
-    logger.warn(err.stack);
+    return new PDO($dsn, $_ENV['DB_USER'], $_ENV['DB_PASSWORD'], $options);
 }
 
-function check_apt_update() {
-    new Promise(() => {
-       try {
-            logger.info('START check_apt_update');
-            const mc = memjs.Client.create();
-            logger.info('check_apt_update CHECK POINT 010');
-            var check_apt = '';
-            mc.get('CHECK_APT', function (err, val) {
-                logger.info('check_apt_update CHECK POINT 020');
-                if (err) {
-                    logger.info('check_apt_update CHECK POINT 030');
-                    logger.warn(err.stack);
-                }
-                logger.info('check_apt_update CHECK POINT 040');
-                if (val != null) {
-                    logger.info('check_apt_update CHECK POINT 050');
-                    logger.info('memcached hit CHECK_APT : ' + val);
-                    return;
-                }
-                logger.info('check_apt_update CHECK POINT 060');
-                const dt = new Date();
-                const datetime = dt.getFullYear() + '-' + ('0' + (dt.getMonth() + 1)).slice(-2) + '-' + ('0' + dt.getDate()).slice(-2) + ' ' +
-                   ('0' + dt.getHours()).slice(-2) + ':' + ('0' + dt.getMinutes()).slice(-2);
-                var stdout = execSync('apt-get update');
-                stdout = execSync('apt-get -s upgrade | grep upgraded');
-                check_apt = datetime + ' ' + stdout.toString();
-                mc.set('CHECK_APT', check_apt, {
-                    expires: 24 * 60 * 60
-                }, function (err, _) {
-                    if (err) {
-                        logger.warn(err.stack);
-                    } else {
-                        logger.info('memcached set CHECK_APT : ' + check_apt);
-                    }
-                });
-            });
-            logger.info('check_apt_update CHECK POINT 070');
-            /*
-            await setTimeout(20000);
-            logger.info('check_apt_update CHECK POINT 080');
-            if (check_apt == '') {
-                const dt = new Date();
-                const datetime = dt.getFullYear() + '-' + ('0' + (dt.getMonth() + 1)).slice(-2) + '-' + ('0' + dt.getDate()).slice(-2) + ' ' +
-                   ('0' + dt.getHours()).slice(-2) + ':' + ('0' + dt.getMinutes()).slice(-2);
-                var stdout = execSync('apt-get update');
-                stdout = execSync('apt-get -s upgrade | grep upgraded');
-                check_apt = datetime + ' ' + stdout.toString();
-                mc.set('CHECK_APT', check_apt, {
-                    expires: 24 * 60 * 60
-                }, function (err, _) {
-                    if (err) {
-                        logger.warn(err.stack);
-                    } else {
-                        logger.info('memcached set CHECK_APT : ' + check_apt);
-                    }
-                });
-            }
-            */
-        } catch (err) {
-            logger.info('check_apt_update CHECK POINT 080');
-            logger.warn(err.stack);
-        }
-    });
+function init_sqlite()
+{
+    global $log;
+
+    $log->info('BEGIN');
+
+    $pdo_sqlite = new PDO('sqlite:/tmp/m_cron.db');
+
+    $log->info('SQLite Version : ' . $pdo_sqlite->query('SELECT sqlite_version()')->fetchColumn());
+
+    $sql_create = <<< __HEREDOC__
+CREATE TABLE m_cron (
+ schedule TEXT,
+ uri TEXT,
+ method TEXT,
+ authentication TEXT,
+ headers TEXT,
+ post_data TEXT
+)
+__HEREDOC__;
+
+    $rc = $pdo_sqlite->exec($sql_create);
+    $log->info('m_cron create table result : ' . $rc);
+
+    $sql_insert = <<< __HEREDOC__
+INSERT INTO m_cron VALUES(:b_schedule, :b_uri, :b_method, :b_authentication, :b_headers, :b_post_data)
+__HEREDOC__;
+
+    $statement_insert = $pdo_sqlite->prepare($sql_insert);
+
+    $pdo = get_pdo();
+
+    $log->info('MySQL Version : ' . $pdo->query('SELECT version()')->fetchColumn());
+
+    $sql_select = <<< __HEREDOC__
+SELECT M1.schedule
+      ,M1.uri
+      ,M1.method
+      ,M1.authentication
+      ,M1.headers
+      ,M1.post_data
+  FROM m_cron M1
+ WHERE M1.enable = TRUE
+ ORDER BY M1.uri
+__HEREDOC__;
+
+    $statement_select = $pdo->prepare($sql_select);
+    $rc = $statement_select->execute();
+    $results = $statement_select->fetchAll();
+
+    foreach ($results as $row) {
+        $statement_insert->execute([
+            ':b_schedule' => $row['schedule'],
+            ':b_uri' => $row['uri'],
+            ':b_method' => $row['method'],
+            ':b_authentication' => $row['authentication'],
+            ':b_headers' => $row['headers'],
+            ':b_post_data' => $row['post_data'],
+        ]);
+        $log->info('insert result : ' . $statement_insert->rowCount() . ' ' . $row['schedule'] . ' ' . $row['uri']);
+    }
+
+    $pdo = null;
+    $pdo_sqlite = null;
 }
 
-function check_npm_update() {
-    new Promise(() => {
-       try {
-            logger.info('START check_npm_update');
-            const mc = memjs.Client.create();
-            var check_npm = '';
-            mc.get('CHECK_NPM', function (err, val) {
-                if (err) {
-                    logger.warn(err.stack);
-                }
-                if (val != null) {
-                    logger.info('memcached hit CHECK_NPM : ' + val);
-                    return;
-                }
-                const dt = new Date();
-                const datetime = dt.getFullYear() + '-' + ('0' + (dt.getMonth() + 1)).slice(-2) + '-' + ('0' + dt.getDate()).slice(-2) + ' ' +
-                   ('0' + dt.getHours()).slice(-2) + ':' + ('0' + dt.getMinutes()).slice(-2);
-                var stdout = execSync('npm outdated');
-                check_npm = datetime + ' ' + (stdout.toString().length == 0 ? "none" : stdout.toString());
-                mc.set('CHECK_NPM', check_npm, {
-                    expires: 24 * 60 * 60
-                }, function (err, _) {
-                    if (err) {
-                        logger.warn(err.stack);
-                    } else {
-                        logger.info('memcached set CHECK_NPM : ' + check_npm);
-                    }
-                });
-            });
-            /*
-            await setTimeout(20000);
-            if (check_npm == '') {
-                const dt = new Date();
-                const datetime = dt.getFullYear() + '-' + ('0' + (dt.getMonth() + 1)).slice(-2) + '-' + ('0' + dt.getDate()).slice(-2) + ' ' +
-                   ('0' + dt.getHours()).slice(-2) + ':' + ('0' + dt.getMinutes()).slice(-2);
-                var stdout = execSync('npm outdated');
-                check_npm = datetime + ' ' + (stdout.toString().length == 0 ? "none" : stdout.toString());
-                mc.set('CHECK_NPM', check_npm, {
-                    expires: 24 * 60 * 60
-                }, function (err, _) {
-                    if (err) {
-                        logger.warn(err.stack);
-                    } else {
-                        logger.info('memcached set CHECK_NPM : ' + check_npm);
-                    }
-                });
+function get_contents_multi($urls_, $multi_options_ = null)
+{
+    global $log;
+
+    $log->info('BEGIN');
+
+    $time_start = microtime(true);
+
+    if (is_null($urls_)) {
+        $urls_ = [];
+    }
+
+    $mh = curl_multi_init();
+    if (is_null($multi_options_) === false) {
+        foreach ($multi_options_ as $key => $value) {
+            $rc = curl_multi_setopt($mh, $key, $value);
+            if ($rc === false) {
+                $log->info("curl_multi_setopt : {$key} {$value}");
             }
-            */
-        } catch (err) {
-            logger.warn(err.stack);
         }
-    });
+    }
+
+    foreach ($urls_ as $url => $options_add) {
+        $log->info('CURL MULTI Add $url : ' . $url);
+        $ch = curl_init();
+        $options = [CURLOPT_URL => $url,
+                    // CURLOPT_USERAGENT => getenv('USER_AGENT'),
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_ENCODING => '',
+                    CURLOPT_FOLLOWLOCATION => true,
+                    CURLOPT_MAXREDIRS => 3,
+                    CURLOPT_PATH_AS_IS => true,
+                    CURLOPT_TCP_FASTOPEN => true,
+                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_2TLS,
+                    CURLOPT_TIMEOUT => 30,
+                   ];
+
+        // if (is_null($options_add) === false && array_key_exists(CURLOPT_USERAGENT, $options_add)) {
+        //     unset($options[CURLOPT_USERAGENT]);
+        // }
+        foreach ($options as $key => $value) {
+            $rc = curl_setopt($ch, $key, $value);
+            if ($rc == false) {
+                $log->info("curl_setopt : {$key} {$value}");
+            }
+        }
+        if (is_null($options_add) === false) {
+            foreach ($options_add as $key => $value) {
+                if ($key == CURLOPT_USERPWD) {
+                    $value = base64_decode($value);
+                }
+                $rc = curl_setopt($ch, $key, $value);
+                if ($rc == false) {
+                    $log->info("curl_setopt : {$key} {$value}");
+                }
+            }
+        }
+        curl_multi_add_handle($mh, $ch);
+        $list_ch[$url] = $ch;
+    }
+
+    $active = null;
+    $rc = curl_multi_exec($mh, $active);
+
+    $count = 0;
+    while ($active && $rc == CURLM_OK) {
+        $count++;
+        if (curl_multi_select($mh) == -1) {
+            usleep(1);
+        }
+        $rc = curl_multi_exec($mh, $active);
+    }
+    $log->info('loop count : ' . $count);
+
+    $results = [];
+    foreach (array_keys($urls_) as $url) {
+        $ch = $list_ch[$url];
+        $res = curl_getinfo($ch);
+        $http_code = (string)$res['http_code'];
+        $log->info("CURL Result {$http_code} : {$url}");
+        if ($http_code[0] == '2') {
+            $result = curl_multi_getcontent($ch);
+            $results[$url] = $result;
+        }
+        curl_multi_remove_handle($mh, $ch);
+        curl_close($ch);
+    }
+
+    curl_multi_close($mh);
+
+    $total_time = substr((microtime(true) - $time_start), 0, 7) . 'sec';
+
+    $log->info("Total Time : [{$total_time}]");
+    $log->info("memory_get_usage : " . number_format(memory_get_usage()) . 'byte');
+
+    return $results;
 }
