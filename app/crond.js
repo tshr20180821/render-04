@@ -28,11 +28,11 @@ try {
                     }
                 };
                 http_options.agent = new https.Agent({
-                    keepAlive: false
+                    keepAlive: true
                 });
 
                 var data_buffer = [];
-                https.request(url, http_options, (res) => {
+                const req = https.request(url, http_options, (res) => {
                     res.on('data', (chunk) => {
                         data_buffer.push(chunk);
                     });
@@ -54,7 +54,10 @@ try {
                         // https://process.env.RENDER_EXTERNAL_HOSTNAME/cdn-cgi/trace
                         mu.send_slack_message('HTTP STATUS CODE : ' + res.statusCode + ' ' + process.env.RENDER_EXTERNAL_HOSTNAME);
                     }
-                }).end();
+                });
+                console.log(req);
+                req.end();
+
                 if (Date.now() - process.env.START_TIME > 5 * 60 * 1000) {
                     if ((new Date()).getMinutes() % 2 == 0) {
                         check_apt_update();
