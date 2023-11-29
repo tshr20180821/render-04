@@ -23,14 +23,14 @@ exit();
 function crond()
 {
     global $log;
-    
+
     $log->info('BEGIN');
-    
+
     if ($_SERVER['HTTP_X_DEPLOY_DATETIME'] != $_ENV['DEPLOY_DATETIME']) {
         $log->warn('VERSION UNMATCH ' . $_SERVER['HTTP_X_DEPLOY_DATETIME']);
         return;
     }
-    
+
     if (check_duplicate() == false) {
         return;
     }
@@ -54,7 +54,7 @@ function crond()
         }
     }
     $mc->quit();
-    
+
     clearstatcache();
     if (!file_exists('/tmp/m_cron.db')) {
         init_sqlite();
@@ -70,22 +70,22 @@ SELECT M1.schedule
   FROM m_cron M1
  ORDER BY M1.uri
 __HEREDOC__;
-    
+
     $timestamp = time();
-    
+
     $log->info('cron target time : ' . date('Y/m/d H:i', $timestamp));
-    
+
     $format = [];
     $format[0] = 'i';
     $format[1] = 'H';
     $format[2] = 'd';
     $format[3] = 'm';
     $format[4] = 'D';
-    
+
     $urls = [];
-    
+
     $tasks = [];
-    
+
     $pdo = new PDO('sqlite:/tmp/m_cron.db');
 
     $statement = $pdo->prepare($sql_select);
@@ -97,15 +97,17 @@ __HEREDOC__;
     }
 
     $pdo = null;
-    
+
+    $log_data = [];
     foreach ($tasks as list($schedules, $uri, $method, $authentication, $headers, $post_data)) {
-        $log->info($schedules . ' ' . $uri);
+        // $log->info($schedules . ' ' . $uri);
+        $log_data[] = $schedules . ' ' . $uri;
         $schedule = explode(' ', $schedules);
-        
+
         if (count($schedule) != 5) {
             continue;
         }
-        
+
         for ($i = 0; $i < 5; $i++) {
             $is_execute = false;
             $tmp1 = explode(',', $schedule[$i]);
@@ -114,16 +116,16 @@ __HEREDOC__;
                     $is_execute = true;
                     break;
                 }
-                
+
                 if (str_pad($tmp1[$j], 2, '0', STR_PAD_LEFT) === date($format[$i], $timestamp)) {
                     $is_execute = true;
                     break;
                 }
-                
+
                 if ($i === 4) {
                     continue;
                 }
-                
+
                 // m-n
                 $tmp2 = explode('-', $tmp1[$j]);
                 if (count($tmp2) === 2) {
@@ -133,7 +135,7 @@ __HEREDOC__;
                         break;
                     }
                 }
-                
+
                 // */n
                 $tmp2 = explode('*/', $tmp1[$j]);
                 if (count($tmp2) === 2) {
@@ -150,7 +152,7 @@ __HEREDOC__;
         if ($is_execute === false) {
             continue;
         }
-        
+
         // execute
         $options = [
             CURLOPT_TIMEOUT => 30,
@@ -163,7 +165,7 @@ __HEREDOC__;
         if (strlen($authentication) > 0) {
             $options += [CURLOPT_USERPWD => base64_encode($authentication)];
         }
-        
+
         if ($method == 'POST') {
             if (strlen($post_data) > 0) {
                 $options += [CURLOPT_POST => true,
@@ -173,20 +175,21 @@ __HEREDOC__;
         }
         $urls[$uri] = $options;
     }
-    
+
     if (count($urls) == 0) {
         $log->info('NO TARGET');
         return;
     }
-    
+    $log->info(print_r($log_data, true));
+
     $multi_options = [
         CURLMOPT_PIPELINING => CURLPIPE_MULTIPLEX,
         CURLMOPT_MAX_HOST_CONNECTIONS => 20,
         CURLMOPT_MAXCONNECTS => 20,
     ];
-    
+
     $log->info(print_r($urls, true));
-    
+
     get_contents_multi($urls, $multi_options);
 }
 
@@ -195,9 +198,9 @@ function check_duplicate()
     global $log;
 
     $log->info('BEGIN');
-    
+
     $time = time();
-    
+
     clearstatcache();
     $lock_file = '/tmp/crond_php_' . date('i', $time);
     if (file_exists($lock_file) == true && ($time - filemtime($lock_file)) < 300) {
@@ -205,13 +208,13 @@ function check_duplicate()
         return false;
     }
     touch($lock_file);
-    
+
     $pdo = get_pdo();
-    
+
     // $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    
+
     $pdo->beginTransaction();
-    
+
     $sql_update = <<< __HEREDOC__
 UPDATE m_server
    SET update_time = NOW()
@@ -219,21 +222,21 @@ UPDATE m_server
    AND processed_minute_one_digit = :b_processed_minute_one_digit
    AND update_time < NOW() - INTERVAL 5 MINUTE
 __HEREDOC__;
-    
+
     $statement_update = $pdo->prepare($sql_update);
-    
+
     $statement_update->execute([
         ':b_server_name' => $_ENV['RENDER_EXTERNAL_HOSTNAME'],
         ':b_processed_minute_one_digit' => (int)date('i', $time) % 10,
     ]);
-    
+
     if ($statement_update->rowCount() != 1) {
         $pdo->rollBack();
         $pdo = null;
         $log->warn('ROLLBACK');
         return false;
     }
-    
+
     $pdo->commit();
     $pdo = null;
     $log->info('COMMIT');
@@ -245,7 +248,7 @@ function get_pdo()
     global $log;
 
     $log->info('BEGIN');
-    
+
     $dsn = "mysql:host={$_ENV['DB_SERVER']};dbname={$_ENV['DB_NAME']}";
     $options = array(
       PDO::MYSQL_ATTR_SSL_CA => '/etc/ssl/certs/ca-certificates.crt',
@@ -258,11 +261,11 @@ function init_sqlite()
     global $log;
 
     $log->info('BEGIN');
-    
+
     $pdo_sqlite = new PDO('sqlite:/tmp/m_cron.db');
-    
+
     $log->info('SQLite Version : ' . $pdo_sqlite->query('SELECT sqlite_version()')->fetchColumn());
-    
+
     $sql_create = <<< __HEREDOC__
 CREATE TABLE m_cron (
  schedule TEXT,
@@ -276,7 +279,7 @@ __HEREDOC__;
 
     $rc = $pdo_sqlite->exec($sql_create);
     $log->info('m_cron create table result : ' . $rc);
-    
+
     $sql_insert = <<< __HEREDOC__
 INSERT INTO m_cron VALUES(:b_schedule, :b_uri, :b_method, :b_authentication, :b_headers, :b_post_data)
 __HEREDOC__;
@@ -284,9 +287,9 @@ __HEREDOC__;
     $statement_insert = $pdo_sqlite->prepare($sql_insert);
 
     $pdo = get_pdo();
-    
+
     $log->info('MySQL Version : ' . $pdo->query('SELECT version()')->fetchColumn());
-    
+
     $sql_select = <<< __HEREDOC__
 SELECT M1.schedule
       ,M1.uri
@@ -302,7 +305,7 @@ __HEREDOC__;
     $statement_select = $pdo->prepare($sql_select);
     $rc = $statement_select->execute();
     $results = $statement_select->fetchAll();
-    
+
     foreach ($results as $row) {
         $statement_insert->execute([
             ':b_schedule' => $row['schedule'],
@@ -330,7 +333,7 @@ function get_contents_multi($urls_, $multi_options_ = null)
     if (is_null($urls_)) {
         $urls_ = [];
     }
-    
+
     $mh = curl_multi_init();
     if (is_null($multi_options_) === false) {
         foreach ($multi_options_ as $key => $value) {
