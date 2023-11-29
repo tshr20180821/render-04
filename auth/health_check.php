@@ -74,8 +74,7 @@ __HEREDOC__;
             }
         } else {
             $log->info($key_name . ' : memcached miss');
-            $rc = $mc->getResultCode();
-            $log->info('memcached results : ' . $rc);
+            $log->info('memcached results : ' . $mc->getResultCode());
         }
     }
     $mc->quit();
