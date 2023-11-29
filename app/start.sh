@@ -96,7 +96,6 @@ exec /usr/sbin/apache2 -DFOREGROUND &
 
 sleep 5s && curl -sS -u ${BASIC_USER}:${BASIC_PASSWORD} http://127.0.0.1/auth/preload.php &
 
-# for i in {1..60} ; do sleep 30s && ps aux ; done &
 while true; do sleep 840s && ps aux && curl -sS -A "health check" -u ${BASIC_USER}:${BASIC_PASSWORD} https://${RENDER_EXTERNAL_HOSTNAME}/; done &
 
 export START_TIME=$(date +%s%3N)
