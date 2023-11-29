@@ -74,9 +74,12 @@ __HEREDOC__;
             }
         } else {
             $log->info($key_name . ' : memcached miss');
-            $log->info('memcached results : ' . $mc->getResultCode());
+            $rc = $mc->getResultCode();
+            $log->info('memcached results : ' . $rc);
         }
     }
+    $res = $mc->getStats();
+    $log->info('memcached stats : ' + print_r($res, true));
     $mc->quit();
 
     $docker_hub_updated = '';
