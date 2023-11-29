@@ -25,7 +25,8 @@ try {
                         'Authorization': 'Basic ' + Buffer.from(process.env.BASIC_USER + ':' + process.env.BASIC_PASSWORD).toString('base64'),
                         'User-Agent': 'cron ' + process.env.DEPLOY_DATETIME + ' ' + process.pid,
                         'X-Deploy-DateTime': process.env.DEPLOY_DATETIME
-                    }
+                    },
+                    timeout: 5000,
                 };
                 http_options.agent = new https.Agent({
                     keepAlive: true
