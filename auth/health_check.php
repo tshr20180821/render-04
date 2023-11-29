@@ -78,8 +78,10 @@ __HEREDOC__;
             $log->info('memcached results : ' . $rc);
         }
     }
-    $res = $mc->getStats();
-    $log->info('memcached stats : ' . print_r($res, true));
+    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        $res = $mc->getStats();
+        $log->info('memcached stats : ' . print_r($res, true));
+    }
     $mc->quit();
 
     $docker_hub_updated = '';
