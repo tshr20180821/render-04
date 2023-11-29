@@ -66,7 +66,13 @@ __HEREDOC__;
         $apt_result = trim($mc->get('CHECK_APT'));
     } else {
         $log->info('CHECK_APT : memcached miss');
-        $log->info('memcached results : ' . $mc->getResultCode());
+        $rc = $mc->getResultCode();
+        $log->info('memcached results : ' . $rc);
+        if ($rc != Memcached::RES_NOTFOUND) {
+            $mc->delete('CHECK_APT');
+            $log->info('CHECK_APT : memcached delete');
+            $log->info('memcached results : ' . $mc->getResultCode());
+        }
     }
     if ($mc->get('CHECK_NPM') !== false) {
         $log->info('CHECK_NPM : memcached hit');
