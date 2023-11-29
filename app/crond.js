@@ -29,7 +29,7 @@ try {
                     timeout: 5000,
                 };
                 http_options.agent = new https.Agent({
-                    keepAlive: true
+                    keepAlive: false
                 });
 
                 var data_buffer = [];
