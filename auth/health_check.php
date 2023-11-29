@@ -79,7 +79,7 @@ __HEREDOC__;
         }
     }
     $res = $mc->getStats();
-    $log->info('memcached stats : ' + print_r($res, true));
+    $log->info('memcached stats : ' . print_r($res, true));
     $mc->quit();
 
     $docker_hub_updated = '';
