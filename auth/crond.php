@@ -35,6 +35,7 @@ function crond()
         return;
     }
 
+    /*
     $mc = new Memcached();
     $mc->setOption(Memcached::OPT_BINARY_PROTOCOL, true);
     $mc->setSaslAuthData('memcached', getenv('SASL_PASSWORD'));
@@ -55,6 +56,7 @@ function crond()
         }
     }
     $mc->quit();
+    */
 
     clearstatcache();
     if (!file_exists('/tmp/m_cron.db')) {
