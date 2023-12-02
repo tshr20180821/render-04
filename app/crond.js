@@ -95,21 +95,16 @@ function check_apt_update() {
        try {
             logger.info('START check_apt_update');
             const mc = memjs.Client.create();
-            logger.info('check_apt_update CHECK POINT 010');
             var check_apt = '';
             mc.get('CHECK_APT', function (err, val) {
-                logger.info('check_apt_update CHECK POINT 020');
                 if (err) {
-                    logger.info('check_apt_update CHECK POINT 030');
                     logger.warn(err.stack);
                 }
-                logger.info('check_apt_update CHECK POINT 040');
                 if (val != null) {
-                    logger.info('check_apt_update CHECK POINT 050');
                     logger.info('memcached hit CHECK_APT : ' + val);
+                    mc.quit();
                     return;
                 }
-                logger.info('check_apt_update CHECK POINT 060');
                 const dt = new Date();
                 const datetime = dt.getFullYear() + '-' + ('0' + (dt.getMonth() + 1)).slice(-2) + '-' + ('0' + dt.getDate()).slice(-2) + ' ' +
                    ('0' + dt.getHours()).slice(-2) + ':' + ('0' + dt.getMinutes()).slice(-2);
@@ -124,11 +119,10 @@ function check_apt_update() {
                     } else {
                         logger.info('memcached set CHECK_APT : ' + check_apt);
                     }
+                    mc.quit();
                 });
             });
-            logger.info('check_apt_update CHECK POINT 070');
         } catch (err) {
-            logger.info('check_apt_update CHECK POINT 080');
             logger.warn(err.stack);
         }
     });
@@ -146,6 +140,7 @@ function check_npm_update() {
                 }
                 if (val != null) {
                     logger.info('memcached hit CHECK_NPM : ' + val);
+                    mc.quit();
                     return;
                 }
                 const dt = new Date();
@@ -166,6 +161,7 @@ function check_npm_update() {
                     } else {
                         logger.info('memcached set CHECK_NPM : ' + check_npm);
                     }
+                    mc.quit();
                 });
             });
         } catch (err) {
