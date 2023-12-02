@@ -28,7 +28,8 @@ function get_dockerhub_repository_information()
         foreach ($data['results'] as $data_tag) {
             // $log->info('tag_name : ' . $data_tag['name']);
             if ($data_tag['name'] == $_ENV['DOCKER_HUB_PHP_TAG']) {
-                $log->info($data_tag['last_updated']);
+                $log->info('tag_name : ' . $data_tag['name'] . ' ' . $data_tag['last_updated']);
+                // $log->info($data_tag['last_updated']);
                 apcu_store('last_updated_' . $_ENV['DOCKER_HUB_PHP_TAG'], $data_tag['last_updated']);
                 break 2;
             }
