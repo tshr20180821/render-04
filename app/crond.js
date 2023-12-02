@@ -63,7 +63,7 @@ try {
                     if ((new Date()).getMinutes() % 2 == 0) {
                         check_apt_update();
                     } else {
-                        check_npm_update();
+                        // check_npm_update();
                     }
                 }
             } catch (err) {
