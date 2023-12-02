@@ -34,26 +34,30 @@ try {
 
                 var data_buffer = [];
                 const req = https.request(url, http_options, (res) => {
-                    res.on('data', (chunk) => {
-                        data_buffer.push(chunk);
-                    });
-                    res.on('end', () => {
-                        logger.info('RESPONSE BODY : ' + Buffer.concat(data_buffer).toString().substring(0, 100));
-                        var num = Number(Buffer.concat(data_buffer));
-                        if (!Number.isNaN(num) && Number(process.env.DEPLOY_DATETIME) < num) {
-                            logger.warn('CRON STOP');
-                            this.stop();
+                    try {
+                        res.on('data', (chunk) => {
+                            data_buffer.push(chunk);
+                        });
+                        res.on('end', () => {
+                            logger.info('RESPONSE BODY : ' + Buffer.concat(data_buffer).toString().substring(0, 100));
+                            var num = Number(Buffer.concat(data_buffer));
+                            if (!Number.isNaN(num) && Number(process.env.DEPLOY_DATETIME) < num) {
+                                logger.warn('CRON STOP');
+                                this.stop();
+                            }
+                        });
+                        res.on('error', (err) => {
+                            logger.warn(err.toString());
+                        });
+    
+                        logger.info('HTTP STATUS CODE : ' + res.statusCode + ' ' + process.env.RENDER_EXTERNAL_HOSTNAME);
+    
+                        if (res.statusCode != 200) {
+                            // https://process.env.RENDER_EXTERNAL_HOSTNAME/cdn-cgi/trace
+                            mu.send_slack_message('HTTP STATUS CODE : ' + res.statusCode + ' ' + process.env.RENDER_EXTERNAL_HOSTNAME);
                         }
-                    });
-                    res.on('error', (err) => {
-                        logger.warn(err.toString());
-                    });
-
-                    logger.info('HTTP STATUS CODE : ' + res.statusCode + ' ' + process.env.RENDER_EXTERNAL_HOSTNAME);
-
-                    if (res.statusCode != 200) {
-                        // https://process.env.RENDER_EXTERNAL_HOSTNAME/cdn-cgi/trace
-                        mu.send_slack_message('HTTP STATUS CODE : ' + res.statusCode + ' ' + process.env.RENDER_EXTERNAL_HOSTNAME);
+                    } catch (err) {
+                        logger.warn(err.stack);
                     }
                 });
                 console.log(req);
