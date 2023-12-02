@@ -148,7 +148,7 @@ function check_npm_update() {
                    ('0' + dt.getHours()).slice(-2) + ':' + ('0' + dt.getMinutes()).slice(-2);
                 var result = 'none';
                 try {
-                    const stdout = require('child_process').execSync('npm outdated');
+                    require('child_process').execSync('npm outdated');
                 } catch (err) {
                     result = err.stdout.toString();
                 }
