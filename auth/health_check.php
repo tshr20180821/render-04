@@ -57,11 +57,13 @@ __HEREDOC__;
 
     $apt_result = '';
     $npm_result = '';
-    $mc = new Memcached();
-    $mc->setOption(Memcached::OPT_BINARY_PROTOCOL, true);
-    $mc->setSaslAuthData('memcached', getenv('SASL_PASSWORD'));
-    $mc->addServer('127.0.0.1', 11211);
-    $mc->setOption(Memcached::OPT_SERVER_FAILURE_LIMIT, 255);
+    $mc = new Memcached('pool');
+    if (count($mc->getServerList()) == 0) {
+        $mc->setOption(Memcached::OPT_BINARY_PROTOCOL, true);
+        $mc->setSaslAuthData('memcached', getenv('SASL_PASSWORD'));
+        $mc->addServer('127.0.0.1', 11211);
+        $mc->setOption(Memcached::OPT_SERVER_FAILURE_LIMIT, 255);
+    }
     foreach (['CHECK_APT', 'CHECK_NPM'] as &$key_name) {
         if ($mc->get($key_name) !== false) {
             $log->info($key_name . ' : memcached hit');
