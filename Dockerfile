@@ -41,7 +41,8 @@ ENV SQLITE_JDBC_VERSION="3.44.1.0"
 # sasl2-bin : sasl
 # tzdata : ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
 # zlib1g-dev : pecl memcached
-RUN dpkg -l \
+RUN set -x \
+ && savedAptMark="$(apt-mark showmanual)" \
  && echo "https://raw.githubusercontent.com/tshr20180821/render-07/main/app/sqlite-jdbc-$SQLITE_JDBC_VERSION.jar" >download.txt \
  && echo "https://raw.githubusercontent.com/tshr20180821/render-07/main/app/phpMyAdmin-5.2.1-all-languages.tar.xz" >>download.txt \
  && echo "https://raw.githubusercontent.com/tshr20180821/render-07/main/app/slf4j-api-2.0.9.jar" >>download.txt \
@@ -60,12 +61,9 @@ RUN dpkg -l \
  && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | ./gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
  && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list \
  && echo "deb http://deb.debian.org/debian bookworm-backports main contrib non-free" | tee /etc/apt/sources.list.d/backports.list \
- && echo "apt-get -q update" \
  && time apt-get -q update \
- && echo "apt-get -q install" \
  && time DEBIAN_FRONTEND=noninteractive apt-get -q install -y --no-install-recommends apt-fast curl/bookworm-backports \
  && cp -f /tmp/apt-fast.conf /etc/ \
- && echo "apt-fast install" \
  && time apt-fast install -y --no-install-recommends \
   binutils \
   ca-certificates \
@@ -82,41 +80,34 @@ RUN dpkg -l \
   sasl2-bin \
   tzdata \
   zlib1g-dev \
- && echo "dpkg -i apache2" \
  && time dpkg -i apache2-bin_2.4.58-1_amd64.deb apache2-data_2.4.58-1_all.deb apache2-utils_2.4.58-1_amd64.deb apache2_2.4.58-1_amd64.deb \
- && rm *.deb \
- && echo "pecl install apcu" \
+ && rm -f *.deb \
  && time MAKEFLAGS="-j $(nproc)" pecl install apcu >/dev/null \
- && echo "docker-php-ext-enable apcu" \
- && time docker-php-ext-enable apcu \
- && echo "pecl install memcached" \
  && time MAKEFLAGS="-j $(nproc)" pecl install memcached --enable-memcached-sasl >/dev/null \
- && echo "docker-php-ext-enable memcached" \
- && time docker-php-ext-enable memcached \
- && echo "docker-php-ext-configure zip" \
+ && time docker-php-ext-enable apcu memcached \
  && time docker-php-ext-configure zip --with-zip >/dev/null \
- && echo "docker-php-ext-install" \
  && time docker-php-ext-install -j$(nproc) \
   pdo_mysql \
   mysqli \
   mbstring \
   opcache \
   >/dev/null \
- && echo "npm install" \
  && time npm install \
- && echo "npm update -g" \
  && time npm update -g \
- && echo "npm audit fix" \
  && time npm audit fix \
- && echo "apt-get upgrade" \
  && time apt-get upgrade -y --no-install-recommends \
- && echo "npm cache clean" \
  && time npm cache clean --force \
- && echo "pecl clear-cache" \
  && time pecl clear-cache \
- && echo "apt-get -q purge" \
  && time apt-get -q purge -y --auto-remove gcc libonig-dev make \
- && echo "apt-get -q clean" \
+ && time apt-mark auto '.*' >/dev/null \
+ && time apt-mark manual ${savedAptMark} \
+ && time find /usr/local -type f -executable -exec ldd '{}' ';' | \
+  awk '/=>/ { so = $(NF-1); if (index(so, "/usr/local/") == 1) { next }; gsub("^/(usr/)?", "", so); print so }' | \
+  sort -u | xargs -r dpkg-query --search | cut -d: -f1 | sort -u | xargs -r apt-mark manual >/dev/null \
+ && apt-mark manual nodejs \
+ && dpkg -l \
+ && time apt-mark showmanual \
+ && time apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
  && time apt-get clean \
  && rm -rf /var/lib/apt/lists/* \
  && mkdir -p /var/www/html/auth \
@@ -124,9 +115,8 @@ RUN dpkg -l \
  && a2dissite -q 000-default.conf \
  && a2enmod -q authz_groupfile rewrite \
  && ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime \
- && echo "tar xf" \
  && time tar xf ./phpMyAdmin-5.2.1-all-languages.tar.xz --strip-components=1 -C /var/www/html/phpmyadmin \
- && rm ./phpMyAdmin-5.2.1-all-languages.tar.xz ./download.txt \
+ && rm ./phpMyAdmin-5.2.1-all-languages.tar.xz ./download.txt ./gpg \
  && chown www-data:www-data /var/www/html/phpmyadmin -R
 
 COPY ./config.inc.php /var/www/html/phpmyadmin/
