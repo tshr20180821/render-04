@@ -42,7 +42,7 @@ $atom = <<< __HEREDOC__
     <updated>__UPDATED__</updated>
     <summary>SQLite : __SQLITE_VERSION__
 Log Size : __LOG_SIZE__MB
-Docker Hub php:8.2-apache : __DOCKER_HUB_UPDATED__
+Docker Hub php:__DOCKER_HUB_PHP_TAG__ : __DOCKER_HUB_UPDATED__
 apt Check : __APT_RESULT__
 npm Check : __NPM_RESULT__</summary>
   </entry>
@@ -60,8 +60,8 @@ __HEREDOC__;
     $mc = new Memcached('pool');
     if (count($mc->getServerList()) == 0) {
         $mc->setOption(Memcached::OPT_BINARY_PROTOCOL, true);
-        $mc->setSaslAuthData('memcached', getenv('SASL_PASSWORD'));
-        $mc->addServer('127.0.0.1', 11211);
+        $mc->setSaslAuthData($_ENV['MEMCACHED_USER'], $_ENV['SASL_PASSWORD']);
+        $mc->addServer($_ENV['MEMCACHED_SERVER'], $_ENV['MEMCACHED_PORT']);
         $mc->setOption(Memcached::OPT_SERVER_FAILURE_LIMIT, 255);
     }
     foreach (['CHECK_APT', 'CHECK_NPM'] as &$key_name) {
@@ -104,6 +104,7 @@ __HEREDOC__;
     $atom = str_replace('__UPDATED__', date('Y-m-d') . 'T' . date('H:i:s') . '+09', $atom);
     $atom = str_replace('__SQLITE_VERSION__', $sqlite_version, $atom);
     $atom = str_replace('__LOG_SIZE__', number_format($file_size), $atom);
+    $atom = str_replace('__DOCKER_HUB_PHP_TAG__', $_ENV['DOCKER_HUB_PHP_TAG'], $atom);
     $atom = str_replace('__DOCKER_HUB_UPDATED__', $docker_hub_updated, $atom);
     $atom = str_replace('__APT_RESULT__', $apt_result, $atom);
     $atom = str_replace('__NPM_RESULT__', $npm_result, $atom);

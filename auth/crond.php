@@ -35,29 +35,6 @@ function crond()
         return;
     }
 
-    /*
-    $mc = new Memcached();
-    $mc->setOption(Memcached::OPT_BINARY_PROTOCOL, true);
-    $mc->setSaslAuthData('memcached', getenv('SASL_PASSWORD'));
-    $mc->addServer('127.0.0.1', 11211);
-    $mc->setOption(Memcached::OPT_SERVER_FAILURE_LIMIT, 255);
-    foreach (['CHECK_APT', 'CHECK_NPM'] as &$key_name) {
-        if ($mc->get($key_name) !== false) {
-            $log->info($key_name . ' : memcached hit');
-        } else {
-            $log->info($key_name . ' : memcached miss');
-            $rc = $mc->getResultCode();
-            $log->info('memcached results : ' . $rc);
-            if ($rc != Memcached::RES_NOTFOUND) {
-                $mc->delete($key_name);
-                $log->info($key_name . ' : memcached delete');
-                $log->info('memcached results : ' . $mc->getResultCode());
-            }
-        }
-    }
-    $mc->quit();
-    */
-
     clearstatcache();
     if (!file_exists('/tmp/m_cron.db')) {
         init_sqlite();
@@ -351,7 +328,7 @@ function get_contents_multi($urls_, $multi_options_ = null)
         $log->info('CURL MULTI Add $url : ' . $url);
         $ch = curl_init();
         $options = [CURLOPT_URL => $url,
-                    // CURLOPT_USERAGENT => getenv('USER_AGENT'),
+                    // CURLOPT_USERAGENT => $_ENV['USER_AGENT'],
                     CURLOPT_RETURNTRANSFER => true,
                     CURLOPT_ENCODING => '',
                     CURLOPT_FOLLOWLOCATION => true,

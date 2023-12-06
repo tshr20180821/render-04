@@ -18,7 +18,7 @@ function get_dockerhub_repository_information()
 {
     global $log;
     $log->info('BEGIN');
-  
+
     $log->info('target_tag_name : ' . $_ENV['DOCKER_HUB_PHP_TAG']);
     $res = file_get_contents('https://hub.docker.com/v2/repositories/library/php/tags?page_size=100');
 
@@ -30,7 +30,7 @@ function get_dockerhub_repository_information()
             if ($data_tag['name'] == $_ENV['DOCKER_HUB_PHP_TAG']) {
                 $log->info('tag_name : ' . $data_tag['name'] . ' ' . $data_tag['last_updated']);
                 // $log->info($data_tag['last_updated']);
-                apcu_store('last_updated_' . $_ENV['DOCKER_HUB_PHP_TAG'], $data_tag['last_updated']);
+                apcu_store('last_updated_' . $_ENV['DOCKER_HUB_PHP_TAG'], date('Y-m-d H:i') . ' ' . $data_tag['last_updated']);
                 break 2;
             }
         }
