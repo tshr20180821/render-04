@@ -45,21 +45,23 @@ export DEPLOY_DATETIME=$(date +'%Y%m%d%H%M%S')
 npm list --depth=0
 
 # memcached sasl
-export MEMCACHED_SERVER=127.0.0.1:11211
-useradd memcached -G sasl
+export MEMCACHED_SERVER=127.0.0.1
+export MEMCACHED_PORT=11211
+export MEMCACHED_USER=memcached
+useradd ${MEMCACHED_USER} -G sasl
 export SASL_PASSWORD=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 64 | head -n 1)
-echo ${SASL_PASSWORD} | saslpasswd2 -p -a memcached -c memcached
-chown memcached:memcached /etc/sasldb2
+echo ${SASL_PASSWORD} | saslpasswd2 -p -a memcached -c ${MEMCACHED_USER}
+chown ${MEMCACHED_USER}:memcached /etc/sasldb2
 sasldblistusers2
 export SASL_CONF_PATH=/tmp/memcached.conf
 echo "mech_list: plain" >${SASL_CONF_PATH}
 # /usr/sbin/saslauthd -a sasldb -n 2 -V 2>&1 |/usr/src/app/log_general.sh saslauthd &
-./memcached --enable-sasl -v -l 127.0.0.1 -P 11211 -B binary -m 32 -t 3 -d -u memcached 2>&1 |/usr/src/app/log_general.sh memcached &
-# testsaslauthd -u memcached -p ${SASL_PASSWORD}
+./memcached --enable-sasl -v -l ${MEMCACHED_SERVER} -P ${MEMCACHED_PORT} -B binary -m 32 -t 3 -d -u ${MEMCACHED_USER} 2>&1 |/usr/src/app/log_general.sh memcached &
+# testsaslauthd -u ${MEMCACHED_USER} -p ${SASL_PASSWORD}
 
 # memjs
-export MEMCACHIER_SERVERS=${MEMCACHED_SERVER}
-export MEMCACHIER_USERNAME=memcached
+export MEMCACHIER_SERVERS=${MEMCACHED_SERVER}:${MEMCACHED_PORT}
+export MEMCACHIER_USERNAME=${MEMCACHED_USER}
 export MEMCACHIER_PASSWORD=${SASL_PASSWORD}
 
 php -l /var/www/html/auth/crond.php
