@@ -15,7 +15,7 @@ ENV NODE_MAJOR=20
 COPY ./php.ini ${PHP_INI_DIR}/
 COPY --chmod=644 .htpasswd /var/www/html/
 COPY ./apache.conf /etc/apache2/sites-enabled/
-COPY ./app/package.json ./
+COPY ./app/*.json ./
 
 ENV SQLITE_JDBC_VERSION="3.44.1.0"
 
@@ -104,7 +104,7 @@ RUN set -x \
   gcc \
   libonig-dev \
   make \
- && dpkg -l >/tmp/package_list_before.txt \
+ && dpkg -l >./package_list_before.txt \
  && time apt-mark auto '.*' >/dev/null \
  && time apt-mark manual ${savedAptMark} >/dev/null \
  && time find /usr/local -type f -executable -exec ldd '{}' ';' | \
@@ -121,8 +121,9 @@ RUN set -x \
  && dpkg -l \
  && time apt-mark showmanual \
  && time apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
- && dpkg -l >/tmp/package_list_after.txt \
- && diff /tmp/package_list_before.txt /tmp/package_list_after.txt \
+ && dpkg -l >./package_list_after.txt \
+ && diff ./package_list_before.txt ./package_list_after.txt | cat \
+ && rm ./package_list_before.txt ./package_list_after.txt \
  && time apt-get clean \
  && rm -rf /var/lib/apt/lists/* \
  && mkdir -p /var/www/html/auth \
@@ -140,7 +141,7 @@ RUN set -x \
 COPY ./config.inc.php /var/www/html/phpmyadmin/
 COPY ./Dockerfile ./app/*.js ./app/*.php ./
 COPY --chmod=755 ./app/*.sh ./
-COPY --from=memcached:latest /usr/local/bin/memcached ./
+COPY --from=memcached:latest /usr/local/bin/memcached /usr/bin/
 
 COPY ./auth/*.php /var/www/html/auth/
 
