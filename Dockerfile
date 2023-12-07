@@ -13,10 +13,8 @@ ENV NODE_ENV=production
 ENV NODE_MAJOR=20
 
 COPY ./php.ini ${PHP_INI_DIR}/
-COPY ./index.html ./robots.txt /var/www/html/
 COPY --chmod=644 .htpasswd /var/www/html/
 COPY ./apache.conf /etc/apache2/sites-enabled/
-COPY ./apt-fast.conf /tmp/
 COPY ./app/package.json ./
 
 ENV SQLITE_JDBC_VERSION="3.44.1.0"
@@ -30,6 +28,7 @@ ENV SQLITE_JDBC_VERSION="3.44.1.0"
 # ca-certificates : node.js
 # curl : node.js
 # default-jre-headless : java
+# iproute2 : ss
 # libmemcached-dev : pecl memcached
 # libonig-dev : mbstring
 # libsasl2-modules : sasl
@@ -62,13 +61,16 @@ RUN set -x \
  && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list \
  && echo "deb http://deb.debian.org/debian bookworm-backports main contrib non-free" | tee /etc/apt/sources.list.d/backports.list \
  && time apt-get -q update \
- && time DEBIAN_FRONTEND=noninteractive apt-get -q install -y --no-install-recommends apt-fast curl/bookworm-backports \
- && cp -f /tmp/apt-fast.conf /etc/ \
+ && time DEBIAN_FRONTEND=noninteractive apt-get -q install -y --no-install-recommends \
+  apt-fast \
+  curl/bookworm-backports \
+ && echo "MIRRORS=( 'http://deb.debian.org/debian, http://cdn-fastly.deb.debian.org/debian, http://httpredir.debian.org/debian' )" >/etc/apt-fast.conf \
  && time apt-fast install -y --no-install-recommends \
   binutils \
   ca-certificates \
   curl \
   default-jre-headless \
+  iproute2 \
   libmemcached-dev \
   libonig-dev \
   libsasl2-modules \
@@ -98,8 +100,11 @@ RUN set -x \
  && time apt-get upgrade -y --no-install-recommends \
  && time npm cache clean --force \
  && time pecl clear-cache \
- && time apt-get -q purge -y --auto-remove gcc libonig-dev make \
- && dpkg -l \
+ && time apt-get -q purge -y --auto-remove \
+  gcc \
+  libonig-dev \
+  make \
+ && dpkg -l >/tmp/package_list_before.txt \
  && time apt-mark auto '.*' >/dev/null \
  && time apt-mark manual ${savedAptMark} >/dev/null \
  && time find /usr/local -type f -executable -exec ldd '{}' ';' | \
@@ -107,6 +112,7 @@ RUN set -x \
   sort -u | xargs -r dpkg-query --search | cut -d: -f1 | sort -u | xargs -r apt-mark manual >/dev/null 2>&1 \
  && apt-mark manual \
   default-jre-headless \
+  iproute2 \
   libmemcached-dev \
   libsasl2-modules \
   memcached \
@@ -115,6 +121,8 @@ RUN set -x \
  && dpkg -l \
  && time apt-mark showmanual \
  && time apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
+ && dpkg -l >/tmp/package_list_after.txt \
+ && diff /tmp/package_list_before.txt /tmp/package_list_after.txt \
  && time apt-get clean \
  && rm -rf /var/lib/apt/lists/* \
  && mkdir -p /var/www/html/auth \
@@ -124,12 +132,14 @@ RUN set -x \
  && ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime \
  && time tar xf ./phpMyAdmin-5.2.1-all-languages.tar.xz --strip-components=1 -C /var/www/html/phpmyadmin \
  && rm ./phpMyAdmin-5.2.1-all-languages.tar.xz ./download.txt ./gpg \
- && chown www-data:www-data /var/www/html/phpmyadmin -R
+ && chown www-data:www-data /var/www/html/phpmyadmin -R \
+ && echo '<HTML />' >/var/www/html/index.html \
+ && echo 'User-agent: *' >/var/www/html/robots.txt \
+ && echo 'Disallow: /' >>/var/www/html/robots.txt
 
 COPY ./config.inc.php /var/www/html/phpmyadmin/
-COPY ./app/* ./
+COPY ./Dockerfile ./app/*.js ./app/*.php ./
 COPY --chmod=755 ./app/*.sh ./
-COPY ./Dockerfile ./
 COPY --from=memcached:latest /usr/local/bin/memcached ./
 
 COPY ./auth/*.php /var/www/html/auth/
