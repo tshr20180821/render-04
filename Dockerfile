@@ -141,9 +141,9 @@ RUN set -x \
  && rm ./phpMyAdmin-5.2.1-all-languages.tar.xz ./download.txt ./gpg ./package_list_before.txt ./package_list_after.txt \
  && chown www-data:www-data /var/www/html/phpmyadmin -R \
  && echo '<HTML />' >/var/www/html/index.html \
- && {
-  echo 'User-agent: *';
-  echo 'Disallow: /';
+ && { \
+  echo 'User-agent: *'; \
+  echo 'Disallow: /'; \
   } >/var/www/html/robots.txt
 
 COPY ./config.inc.php /var/www/html/phpmyadmin/
