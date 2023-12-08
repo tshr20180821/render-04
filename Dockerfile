@@ -41,16 +41,18 @@ ENV SQLITE_JDBC_VERSION="3.44.1.0"
 # zlib1g-dev : pecl memcached
 RUN set -x \
  && savedAptMark="$(apt-mark showmanual)" \
- && echo "https://github.com/xerial/sqlite-jdbc/releases/download/$SQLITE_JDBC_VERSION/sqlite-jdbc-$SQLITE_JDBC_VERSION.jar" >download.txt \
- && echo "https://raw.githubusercontent.com/tshr20180821/render-07/main/app/phpMyAdmin-5.2.1-all-languages.tar.xz" >>download.txt \
- && echo "https://raw.githubusercontent.com/tshr20180821/render-07/main/app/slf4j-api-2.0.9.jar" >>download.txt \
- && echo "https://raw.githubusercontent.com/tshr20180821/render-07/main/app/slf4j-nop-2.0.9.jar" >>download.txt \
- && echo "https://raw.githubusercontent.com/tshr20180821/render-07/main/app/LogOperation.jar" >>download.txt \
- && echo "https://raw.githubusercontent.com/tshr20180821/render-07/main/app/gpg" >>download.txt \
- && echo "http://mirror.coganng.com/debian/pool/main/a/apache2/apache2_2.4.58-1_amd64.deb" >>download.txt \
- && echo "http://mirror.coganng.com/debian/pool/main/a/apache2/apache2-bin_2.4.58-1_amd64.deb" >>download.txt \
- && echo "http://mirror.coganng.com/debian/pool/main/a/apache2/apache2-data_2.4.58-1_all.deb" >>download.txt \
- && echo "http://mirror.coganng.com/debian/pool/main/a/apache2/apache2-utils_2.4.58-1_amd64.deb" >>download.txt \
+ && { \
+  echo "https://github.com/xerial/sqlite-jdbc/releases/download/$SQLITE_JDBC_VERSION/sqlite-jdbc-$SQLITE_JDBC_VERSION.jar"; \
+  echo "https://raw.githubusercontent.com/tshr20180821/render-07/main/app/phpMyAdmin-5.2.1-all-languages.tar.xz"; \
+  echo "https://raw.githubusercontent.com/tshr20180821/render-07/main/app/slf4j-api-2.0.9.jar"; \
+  echo "https://raw.githubusercontent.com/tshr20180821/render-07/main/app/slf4j-nop-2.0.9.jar"; \
+  echo "https://raw.githubusercontent.com/tshr20180821/render-07/main/app/LogOperation.jar"; \
+  echo "https://raw.githubusercontent.com/tshr20180821/render-07/main/app/gpg"; \
+  echo "http://mirror.coganng.com/debian/pool/main/a/apache2/apache2_2.4.58-1_amd64.deb"; \
+  echo "http://mirror.coganng.com/debian/pool/main/a/apache2/apache2-bin_2.4.58-1_amd64.deb"; \
+  echo "http://mirror.coganng.com/debian/pool/main/a/apache2/apache2-data_2.4.58-1_all.deb"; \
+  echo "http://mirror.coganng.com/debian/pool/main/a/apache2/apache2-utils_2.4.58-1_amd64.deb"; \
+  } >download.txt \
  && time xargs -P2 -n1 curl -sSLO <download.txt \
  && chmod +x ./gpg \
  && mkdir -p /etc/apt/keyrings \
@@ -81,11 +83,17 @@ RUN set -x \
   sasl2-bin \
   tzdata \
   zlib1g-dev \
- && time dpkg -i apache2-bin_2.4.58-1_amd64.deb apache2-data_2.4.58-1_all.deb apache2-utils_2.4.58-1_amd64.deb apache2_2.4.58-1_amd64.deb \
+ && time dpkg -i \
+  apache2-bin_2.4.58-1_amd64.deb \
+  apache2-data_2.4.58-1_all.deb \
+  apache2-utils_2.4.58-1_amd64.deb \
+  apache2_2.4.58-1_amd64.deb \
  && rm -f *.deb \
  && time MAKEFLAGS="-j $(nproc)" pecl install apcu >/dev/null \
  && time MAKEFLAGS="-j $(nproc)" pecl install memcached --enable-memcached-sasl >/dev/null \
- && time docker-php-ext-enable apcu memcached \
+ && time docker-php-ext-enable \
+  apcu \
+  memcached \
  && time docker-php-ext-configure zip --with-zip >/dev/null \
  && time docker-php-ext-install -j$(nproc) \
   pdo_mysql \
@@ -122,7 +130,6 @@ RUN set -x \
  && time apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
  && dpkg -l >./package_list_after.txt \
  && diff ./package_list_before.txt ./package_list_after.txt | cat \
- && rm ./package_list_before.txt ./package_list_after.txt \
  && time apt-get clean \
  && rm -rf /var/lib/apt/lists/* \
  && mkdir -p /var/www/html/auth \
@@ -131,11 +138,13 @@ RUN set -x \
  && a2enmod -q authz_groupfile rewrite \
  && ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime \
  && time tar xf ./phpMyAdmin-5.2.1-all-languages.tar.xz --strip-components=1 -C /var/www/html/phpmyadmin \
- && rm ./phpMyAdmin-5.2.1-all-languages.tar.xz ./download.txt ./gpg \
+ && rm ./phpMyAdmin-5.2.1-all-languages.tar.xz ./download.txt ./gpg ./package_list_before.txt ./package_list_after.txt \
  && chown www-data:www-data /var/www/html/phpmyadmin -R \
  && echo '<HTML />' >/var/www/html/index.html \
- && echo 'User-agent: *' >/var/www/html/robots.txt \
- && echo 'Disallow: /' >>/var/www/html/robots.txt
+ && {
+  echo 'User-agent: *';
+  echo 'Disallow: /';
+  } >/var/www/html/robots.txt
 
 COPY ./config.inc.php /var/www/html/phpmyadmin/
 COPY ./Dockerfile ./app/*.js ./app/*.php ./
@@ -143,6 +152,8 @@ COPY --chmod=755 ./app/*.sh ./
 COPY --from=memcached:latest /usr/local/bin/memcached /usr/bin/
 
 COPY ./auth/*.php /var/www/html/auth/
+
+STOPSIGNAL SIGWINCH
 
 # CMD ["bash","/usr/src/app/start.sh"]
 ENTRYPOINT ["/bin/bash","/usr/src/app/start.sh"]
