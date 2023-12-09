@@ -34,6 +34,7 @@ export NODE_VERSION=$(node --version)
 export JAVA_VERSION=$(java --version | head -n 1)
 export MEMCACHED_VERSION=$(memcached -h | head -n 1)
 
+# log.php LogOperation.jar
 export SQLITE_LOG_DB_FILE="/tmp/sqlitelog.db"
 
 # phpMyAdmin
