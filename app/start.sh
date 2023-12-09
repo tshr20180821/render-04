@@ -68,10 +68,24 @@ export MEMCACHIER_SERVERS=${MEMCACHED_SERVER}:${MEMCACHED_PORT}
 export MEMCACHIER_USERNAME=${MEMCACHED_USER}
 export MEMCACHIER_PASSWORD=${SASL_PASSWORD}
 
-php -l /var/www/html/auth/crond.php
-php -l /var/www/html/auth/health_check.php
-php -l /var/www/html/auth/update_sqlite.php
-php -l log.php
+pushd /var/www/html/auth
+find . -maxdepth 1 -name "*.php" -type f -printf "%f\0" | xargs --max-procs=1 --max-args=1 --null -t php -l | tee -a /tmp/php_error.txt
+popd
+php -l log.php | tee -a /tmp/php_error.txt
+
+count1=$(grep -c 'No syntax errors detected in' /tmp/php_error.txt)
+count2=$(< /tmp/php_error.txt wc -l)
+rm /tmp/php_error.txt
+
+if [ ${count1} -lt ${count2} ]; then
+  curl -sS -X POST -H "Authorization: Bearer ${SLACK_TOKEN}" \
+   -d "text=PHP_SYNTAX_ERROR" -d "channel=${SLACK_CHANNEL_01}" https://slack.com/api/chat.postMessage >/dev/null \
+    && sleep 1s \
+    && curl -sS -X POST -H "Authorization: Bearer ${SLACK_TOKEN}" \
+        -d "text=PHP_SYNTAX_ERROR" -d "channel=${SLACK_CHANNEL_02}" https://slack.com/api/chat.postMessage >/dev/null \
+    && sleep 1s
+fi
+
 /usr/src/app/node_modules/.bin/eslint crond.js
 /usr/src/app/node_modules/.bin/eslint MyUtils.js
 
@@ -96,10 +110,10 @@ VERSION=$(cat VERSION.txt)
 rm VERSION.txt
 
 curl -sS -X POST -H "Authorization: Bearer ${SLACK_TOKEN}" \
-  -d "text=${VERSION}" -d "channel=${SLACK_CHANNEL_01}" https://slack.com/api/chat.postMessage >/dev/null \
- && sleep 1s \
- && curl -sS -X POST -H "Authorization: Bearer ${SLACK_TOKEN}" \
-  -d "text=${VERSION}" -d "channel=${SLACK_CHANNEL_02}" https://slack.com/api/chat.postMessage >/dev/null &
+ -d "text=${VERSION}" -d "channel=${SLACK_CHANNEL_01}" https://slack.com/api/chat.postMessage >/dev/null \
+  && sleep 1s \
+  && curl -sS -X POST -H "Authorization: Bearer ${SLACK_TOKEN}" \
+      -d "text=${VERSION}" -d "channel=${SLACK_CHANNEL_02}" https://slack.com/api/chat.postMessage >/dev/null &
 . /etc/apache2/envvars >/dev/null 2>&1
 exec /usr/sbin/apache2 -DFOREGROUND &
 
