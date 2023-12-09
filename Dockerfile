@@ -6,6 +6,8 @@ SHELL ["/bin/bash", "-c"]
 
 WORKDIR /usr/src/app
 
+ENV DEBIAN_CODE_NAME="bookworm"
+
 ENV CFLAGS="-O2 -march=native -mtune=native -fomit-frame-pointer"
 ENV CXXFLAGS="$CFLAGS"
 ENV LDFLAGS="-fuse-ld=gold"
@@ -60,16 +62,15 @@ RUN set -x \
  && echo "deb [signed-by=/etc/apt/keyrings/apt-fast.gpg] http://ppa.launchpad.net/apt-fast/stable/ubuntu jammy main" | tee /etc/apt/sources.list.d/apt-fast.list \
  && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | ./gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
  && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list \
- && echo "deb http://deb.debian.org/debian bookworm-backports main contrib non-free" | tee /etc/apt/sources.list.d/backports.list \
+ && echo "deb http://deb.debian.org/debian ${DEBIAN_CODE_NAME}-backports main contrib non-free" | tee /etc/apt/sources.list.d/backports.list \
  && time apt-get -q update \
  && time DEBIAN_FRONTEND=noninteractive apt-get -q install -y --no-install-recommends \
   apt-fast \
-  curl/bookworm-backports \
+  curl/${DEBIAN_CODE_NAME}-backports \
  && echo "MIRRORS=( 'http://deb.debian.org/debian, http://cdn-fastly.deb.debian.org/debian, http://httpredir.debian.org/debian' )" >/etc/apt-fast.conf \
  && time apt-fast install -y --no-install-recommends \
   binutils \
   ca-certificates \
-  curl \
   default-jre-headless \
   iproute2 \
   libmemcached-dev \
