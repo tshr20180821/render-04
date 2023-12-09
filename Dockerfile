@@ -126,7 +126,6 @@ RUN set -x \
   memcached \
   nodejs \
   sasl2-bin \
- && dpkg -l \
  && time apt-mark showmanual \
  && time apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
  && dpkg -l >./package_list_after.txt \
