@@ -18,6 +18,9 @@ java --version
 apachectl -V
 apachectl -M
 
+# npm audit
+npm list --depth=0
+
 tmp1=$(cat ./Dockerfile | head -n 1)
 export DOCKER_HUB_PHP_TAG=${tmp1:9}
 rm ./Dockerfile
@@ -44,9 +47,6 @@ export BLOWFISH_SECRET=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | he
 export FIXED_THREAD_POOL=1
 
 export DEPLOY_DATETIME=$(date +'%Y%m%d%H%M%S')
-
-# npm audit
-npm list --depth=0
 
 # memcached sasl
 export MEMCACHED_SERVER=127.0.0.1
@@ -80,15 +80,17 @@ ls -lang /var/www/html/
 sed -i s/__RENDER_EXTERNAL_HOSTNAME__/${RENDER_EXTERNAL_HOSTNAME}/g /etc/apache2/sites-enabled/apache.conf
 sed -i s/__DEPLOY_DATETIME__/${DEPLOY_DATETIME}/ /etc/apache2/sites-enabled/apache.conf
 
-echo "${RENDER_EXTERNAL_HOSTNAME} START ${DEPLOY_DATETIME}" >VERSION.txt
-echo "Host : ${HOST_VERSION}" >>VERSION.txt
-echo "Guest : ${GUEST_VERSION}" >>VERSION.txt
-echo "Processor : ${PROCESSOR_NAME}" >>VERSION.txt
-echo "Apache : ${APACHE_VERSION}" >>VERSION.txt
-echo "PHP : ${PHP_VERSION}" >>VERSION.txt
-echo "Node.js : ${NODE_VERSION}" >>VERSION.txt
-echo "Java : ${JAVA_VERSION}" >>VERSION.txt
-echo "Memcached : ${MEMCACHED_VERSION}" >>VERSION.txt
+{ \
+  echo "${RENDER_EXTERNAL_HOSTNAME} START ${DEPLOY_DATETIME}"; \
+  echo "Host : ${HOST_VERSION}"; \
+  echo "Guest : ${GUEST_VERSION}"; \
+  echo "Processor : ${PROCESSOR_NAME}"; \
+  echo "Apache : ${APACHE_VERSION}"; \
+  echo "PHP : ${PHP_VERSION}"; \
+  echo "Node.js : ${NODE_VERSION}"; \
+  echo "Java : ${JAVA_VERSION}"; \
+  echo "Memcached : ${MEMCACHED_VERSION}"; \
+} >VERSION.txt
 
 VERSION=$(cat VERSION.txt)
 rm VERSION.txt
@@ -106,7 +108,9 @@ sleep 5s && curl -sS -u ${BASIC_USER}:${BASIC_PASSWORD} http://127.0.0.1/auth/pr
 # while true; do sleep 840s && ps aux && curl -sS -A "health check" -u ${BASIC_USER}:${BASIC_PASSWORD} https://${RENDER_EXTERNAL_HOSTNAME}/; done &
 while true; \
   do for i in {1..16}; do sleep 60s && echo ${i}; done \
-  && ss -anpt && ps aux && curl -sS -A "health check" -u ${BASIC_USER}:${BASIC_PASSWORD} https://${RENDER_EXTERNAL_HOSTNAME}/; \
+  && ss -anpt \
+  && ps aux \
+  && curl -sS -A "health check" -u ${BASIC_USER}:${BASIC_PASSWORD} https://${RENDER_EXTERNAL_HOSTNAME}/; \
 done &
 
 export START_TIME=$(date +%s%3N)
