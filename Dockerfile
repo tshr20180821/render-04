@@ -19,8 +19,9 @@ COPY --chmod=644 .htpasswd /var/www/html/
 COPY ./apache.conf /etc/apache2/sites-enabled/
 COPY ./app/*.json ./
 
-ENV SQLITE_JDBC_VERSION="3.44.1.0"
+ENV APACHE_VERSION="2.4.58-1"
 ENV PHPMYADMIN_VERSION="5.2.1"
+ENV SQLITE_JDBC_VERSION="3.44.1.0"
 
 # https://files.phpmyadmin.net/phpMyAdmin/${PHPMYADMIN_VERSION}/phpMyAdmin-${PHPMYADMIN_VERSION}-all-languages.tar.xz
 # https://repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.9/slf4j-api-2.0.9.jar
@@ -51,10 +52,10 @@ RUN set -x \
   echo "https://raw.githubusercontent.com/tshr20180821/render-07/main/app/slf4j-nop-2.0.9.jar"; \
   echo "https://raw.githubusercontent.com/tshr20180821/render-07/main/app/LogOperation.jar"; \
   echo "https://raw.githubusercontent.com/tshr20180821/render-07/main/app/gpg"; \
-  echo "http://mirror.coganng.com/debian/pool/main/a/apache2/apache2_2.4.58-1_amd64.deb"; \
-  echo "http://mirror.coganng.com/debian/pool/main/a/apache2/apache2-bin_2.4.58-1_amd64.deb"; \
-  echo "http://mirror.coganng.com/debian/pool/main/a/apache2/apache2-data_2.4.58-1_all.deb"; \
-  echo "http://mirror.coganng.com/debian/pool/main/a/apache2/apache2-utils_2.4.58-1_amd64.deb"; \
+  echo "http://mirror.coganng.com/debian/pool/main/a/apache2/apache2_${APACHE_VERSION}_amd64.deb"; \
+  echo "http://mirror.coganng.com/debian/pool/main/a/apache2/apache2-bin_${APACHE_VERSION}_amd64.deb"; \
+  echo "http://mirror.coganng.com/debian/pool/main/a/apache2/apache2-data_${APACHE_VERSION}_all.deb"; \
+  echo "http://mirror.coganng.com/debian/pool/main/a/apache2/apache2-utils_${APACHE_VERSION}_amd64.deb"; \
   } >download.txt \
  && time xargs -P2 -n1 curl -sSLO <download.txt \
  && chmod +x ./gpg \
@@ -86,10 +87,10 @@ RUN set -x \
   tzdata \
   zlib1g-dev \
  && time dpkg -i \
-  apache2-bin_2.4.58-1_amd64.deb \
-  apache2-data_2.4.58-1_all.deb \
-  apache2-utils_2.4.58-1_amd64.deb \
-  apache2_2.4.58-1_amd64.deb \
+  apache2-bin_${APACHE_VERSION}_amd64.deb \
+  apache2-data_${APACHE_VERSION}_all.deb \
+  apache2-utils_${APACHE_VERSION}_amd64.deb \
+  apache2_${APACHE_VERSION}_amd64.deb \
  && rm -f *.deb \
  && time MAKEFLAGS="-j $(nproc)" pecl install apcu >/dev/null \
  && time MAKEFLAGS="-j $(nproc)" pecl install memcached --enable-memcached-sasl >/dev/null \
