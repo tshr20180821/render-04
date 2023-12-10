@@ -99,10 +99,10 @@ RUN set -x \
   memcached \
  && time docker-php-ext-configure zip --with-zip >/dev/null \
  && time docker-php-ext-install -j$(nproc) \
-  pdo_mysql \
-  mysqli \
   mbstring \
+  mysqli \
   opcache \
+  pdo_mysql \
   >/dev/null \
  && time npm install \
  && time npm update -g \
