@@ -138,7 +138,9 @@ RUN set -x \
  && mkdir -p /var/www/html/auth \
  && mkdir -p /var/www/html/phpmyadmin \
  && a2dissite -q 000-default.conf \
- && a2enmod -q authz_groupfile rewrite \
+ && a2enmod -q \
+  authz_groupfile \
+  rewrite \
  && ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime \
  && time tar xf ./phpMyAdmin-${PHPMYADMIN_VERSION}-all-languages.tar.xz --strip-components=1 -C /var/www/html/phpmyadmin \
  && rm ./phpMyAdmin-${PHPMYADMIN_VERSION}-all-languages.tar.xz ./download.txt ./gpg ./package_list_before.txt ./package_list_after.txt \
