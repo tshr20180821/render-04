@@ -9,7 +9,7 @@ WORKDIR /usr/src/app
 ENV DEBIAN_CODE_NAME="bookworm"
 
 ENV CFLAGS="-O2 -march=native -mtune=native -fomit-frame-pointer"
-ENV CXXFLAGS="$CFLAGS"
+ENV CXXFLAGS="${CFLAGS}"
 ENV LDFLAGS="-fuse-ld=gold"
 ENV NODE_ENV=production
 ENV NODE_MAJOR=20
