@@ -7,7 +7,7 @@ dpkg -l
 cat /proc/version
 cat /etc/os-release
 strings /etc/localtime
-echo 'Processor Count : ' $(grep -c -e processor /proc/cpuinfo)
+echo 'Processor Count : ' "$(grep -c -e processor /proc/cpuinfo)"
 head -n $(($(< /proc/cpuinfo wc -l) / $(grep -c -e processor /proc/cpuinfo))) /proc/cpuinfo
 hostname -A
 whoami
@@ -94,6 +94,7 @@ ls -lang /var/www/html/
 sed -i s/__RENDER_EXTERNAL_HOSTNAME__/${RENDER_EXTERNAL_HOSTNAME}/g /etc/apache2/sites-enabled/apache.conf
 sed -i s/__DEPLOY_DATETIME__/${DEPLOY_DATETIME}/ /etc/apache2/sites-enabled/apache.conf
 
+# version
 { \
   echo "${RENDER_EXTERNAL_HOSTNAME} START ${DEPLOY_DATETIME}"; \
   echo "Host : ${HOST_VERSION}"; \
@@ -114,22 +115,35 @@ curl -sS -X POST -H "Authorization: Bearer ${SLACK_TOKEN}" \
   && sleep 1s \
   && curl -sS -X POST -H "Authorization: Bearer ${SLACK_TOKEN}" \
       -d "text=${VERSION}" -d "channel=${SLACK_CHANNEL_02}" https://slack.com/api/chat.postMessage >/dev/null &
+
+# apache start
 . /etc/apache2/envvars >/dev/null 2>&1
 exec /usr/sbin/apache2 -DFOREGROUND &
 
-sleep 5s && curl -sS -u ${BASIC_USER}:${BASIC_PASSWORD} http://127.0.0.1/auth/preload.php &
+# php opcache cache
+sleep 5s && curl -sS -u "${BASIC_USER}":"${BASIC_PASSWORD}" http://127.0.0.1/auth/preload.php &
 
-# while true; do sleep 840s && ps aux && curl -sS -A "health check" -u ${BASIC_USER}:${BASIC_PASSWORD} https://${RENDER_EXTERNAL_HOSTNAME}/; done &
+# apt upgrade info cached
+sleep 3m \
+ && apt-get -qq update \
+ && curl -X POST -sS -H "Authorization: Bearer ${UPSTASH_REDIS_REST_TOKEN}" \
+     -d "$(echo -n '["SET", "__KEY__", "__VALUE__"]' | sed "s/__KEY__/APT_RESULT_${RENDER_EXTERNAL_HOSTNAME}/" | sed "s/__VALUE__/$(date +'%Y-%m-%d %H:%M') $(apt-get -s upgrade | grep installed)/")" \
+     "${UPSTASH_REDIS_REST_URL}" &
+
+# apt upgrade info cached
 while true; \
-  do for i in {1..16}; do sleep 60s && echo ${i}; done \
-  && ss -anpt \
-  && ps aux \
-  && curl -sS -A "health check" -u ${BASIC_USER}:${BASIC_PASSWORD} https://${RENDER_EXTERNAL_HOSTNAME}/; \
+  do for i in {1..144}; do \
+    for j in {1..10}; do sleep 60s && echo "${j}"; done \
+     && ss -anpt \
+     && ps aux \
+     && curl -sS -A "health check" -u "${BASIC_USER}":"${BASIC_PASSWORD}" https://"${RENDER_EXTERNAL_HOSTNAME}"/; \
+  done \
+   && apt-get -qq update \
+   && curl -X POST -sS -H "Authorization: Bearer ${UPSTASH_REDIS_REST_TOKEN}" \
+       -d "$(echo -n '["SET", "__KEY__", "__VALUE__"]' | sed "s/__KEY__/APT_RESULT_${RENDER_EXTERNAL_HOSTNAME}/" | sed "s/__VALUE__/$(date +'%Y-%m-%d %H:%M') $(apt-get -s upgrade | grep installed)/")" \
+       "${UPSTASH_REDIS_REST_URL}"
 done &
 
 export START_TIME=$(date +%s%3N)
 
-# find / -size +50M | xargs ls -l | sort -rn &
-
-# forever start -c ”node --expose-gc" crond.js
 node crond.js
