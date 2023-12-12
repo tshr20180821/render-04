@@ -74,7 +74,7 @@ popd || exit
 php -l log.php | tee -a /tmp/php_error.txt
 
 count1=$(grep -c 'No syntax errors detected in' /tmp/php_error.txt)
-count2=$(< /tmp/php_error.txt wc -l)
+count2=$(< wc -l /tmp/php_error.txt)
 rm /tmp/php_error.txt
 
 if [ "${count1}" -lt "${count2}" ]; then
