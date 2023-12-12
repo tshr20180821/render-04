@@ -94,6 +94,7 @@ RUN set -x \
  && rm -f *.deb \
  && time MAKEFLAGS="-j $(nproc)" pecl install apcu >/dev/null \
  && time MAKEFLAGS="-j $(nproc)" pecl install memcached --enable-memcached-sasl >/dev/null \
+ && time MAKEFLAGS="-j $(nproc)" pecl install redis >/dev/null \
  && time docker-php-ext-enable \
   apcu \
   memcached \
@@ -120,6 +121,7 @@ RUN set -x \
  && dpkg -l >./package_list_before.txt \
  && time apt-mark auto '.*' >/dev/null \
  && time apt-mark manual ${savedAptMark} >/dev/null \
+ && time find /usr/local -type f -executable -print \
  && time find /usr/local -type f -executable -exec ldd '{}' ';' | \
   awk '/=>/ { so = $(NF-1); if (index(so, "/usr/local/") == 1) { next }; gsub("^/(usr/)?", "", so); print so }' | \
   sort -u | xargs -r dpkg-query --search | cut -d: -f1 | sort -u | xargs -r apt-mark manual >/dev/null 2>&1 \
