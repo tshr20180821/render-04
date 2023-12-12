@@ -45,17 +45,18 @@ ENV SQLITE_JDBC_VERSION="3.44.1.0"
 # zlib1g-dev : pecl memcached
 RUN set -x \
  && savedAptMark="$(apt-mark showmanual)" \
- && { \
-  echo "https://github.com/xerial/sqlite-jdbc/releases/download/$SQLITE_JDBC_VERSION/sqlite-jdbc-$SQLITE_JDBC_VERSION.jar"; \
-  echo "https://raw.githubusercontent.com/tshr20180821/render-07/main/app/phpMyAdmin-${PHPMYADMIN_VERSION}-all-languages.tar.xz"; \
-  echo "https://raw.githubusercontent.com/tshr20180821/render-07/main/app/slf4j-api-2.0.9.jar"; \
-  echo "https://raw.githubusercontent.com/tshr20180821/render-07/main/app/slf4j-nop-2.0.9.jar"; \
-  echo "https://raw.githubusercontent.com/tshr20180821/render-07/main/app/LogOperation.jar"; \
-  echo "https://raw.githubusercontent.com/tshr20180821/render-07/main/app/gpg"; \
-  echo "http://mirror.coganng.com/debian/pool/main/a/apache2/apache2_${APACHE_VERSION}_amd64.deb"; \
-  echo "http://mirror.coganng.com/debian/pool/main/a/apache2/apache2-bin_${APACHE_VERSION}_amd64.deb"; \
-  echo "http://mirror.coganng.com/debian/pool/main/a/apache2/apache2-data_${APACHE_VERSION}_all.deb"; \
-  echo "http://mirror.coganng.com/debian/pool/main/a/apache2/apache2-utils_${APACHE_VERSION}_amd64.deb"; \
+ && \
+  { \
+   echo "https://github.com/xerial/sqlite-jdbc/releases/download/$SQLITE_JDBC_VERSION/sqlite-jdbc-$SQLITE_JDBC_VERSION.jar"; \
+   echo "https://raw.githubusercontent.com/tshr20180821/render-07/main/app/phpMyAdmin-${PHPMYADMIN_VERSION}-all-languages.tar.xz"; \
+   echo "https://raw.githubusercontent.com/tshr20180821/render-07/main/app/slf4j-api-2.0.9.jar"; \
+   echo "https://raw.githubusercontent.com/tshr20180821/render-07/main/app/slf4j-nop-2.0.9.jar"; \
+   echo "https://raw.githubusercontent.com/tshr20180821/render-07/main/app/LogOperation.jar"; \
+   echo "https://raw.githubusercontent.com/tshr20180821/render-07/main/app/gpg"; \
+   echo "http://mirror.coganng.com/debian/pool/main/a/apache2/apache2_${APACHE_VERSION}_amd64.deb"; \
+   echo "http://mirror.coganng.com/debian/pool/main/a/apache2/apache2-bin_${APACHE_VERSION}_amd64.deb"; \
+   echo "http://mirror.coganng.com/debian/pool/main/a/apache2/apache2-data_${APACHE_VERSION}_all.deb"; \
+   echo "http://mirror.coganng.com/debian/pool/main/a/apache2/apache2-utils_${APACHE_VERSION}_amd64.deb"; \
   } >download.txt \
  && time xargs -P2 -n1 curl -sSLO <download.txt \
  && chmod +x ./gpg \
@@ -150,9 +151,10 @@ RUN set -x \
  && rm ./phpMyAdmin-${PHPMYADMIN_VERSION}-all-languages.tar.xz ./download.txt ./gpg ./package_list_before.txt ./package_list_after.txt \
  && chown www-data:www-data /var/www/html/phpmyadmin -R \
  && echo '<HTML />' >/var/www/html/index.html \
- && { \
-  echo 'User-agent: *'; \
-  echo 'Disallow: /'; \
+ && \
+  { \
+   echo 'User-agent: *'; \
+   echo 'Disallow: /'; \
   } >/var/www/html/robots.txt
 
 COPY ./config.inc.php /var/www/html/phpmyadmin/
