@@ -54,30 +54,30 @@ export MEMCACHED_PORT=11211
 export MEMCACHED_USER=memcached
 useradd ${MEMCACHED_USER} -G sasl
 export SASL_PASSWORD=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 64 | head -n 1)
-echo ${SASL_PASSWORD} | saslpasswd2 -p -a memcached -c ${MEMCACHED_USER}
-chown ${MEMCACHED_USER}:memcached /etc/sasldb2
+echo "${SASL_PASSWORD}" | saslpasswd2 -p -a memcached -c "${MEMCACHED_USER}"
+chown "${MEMCACHED_USER}":memcached /etc/sasldb2
 sasldblistusers2
 export SASL_CONF_PATH=/tmp/memcached.conf
-echo "mech_list: plain" >${SASL_CONF_PATH}
+echo "mech_list: plain" >"${SASL_CONF_PATH}"
 # /usr/sbin/saslauthd -a sasldb -n 2 -V 2>&1 |/usr/src/app/log_general.sh saslauthd &
-memcached --enable-sasl -v -l ${MEMCACHED_SERVER} -P ${MEMCACHED_PORT} -B binary -m 32 -t 3 -d -u ${MEMCACHED_USER} 2>&1 |/usr/src/app/log_general.sh memcached &
+memcached --enable-sasl -v -l "${MEMCACHED_SERVER}" -P "${MEMCACHED_PORT}" -B binary -m 32 -t 3 -d -u "${MEMCACHED_USER}" 2>&1 |/usr/src/app/log_general.sh memcached &
 # testsaslauthd -u ${MEMCACHED_USER} -p ${SASL_PASSWORD}
 
 # memjs
-export MEMCACHIER_SERVERS=${MEMCACHED_SERVER}:${MEMCACHED_PORT}
-export MEMCACHIER_USERNAME=${MEMCACHED_USER}
-export MEMCACHIER_PASSWORD=${SASL_PASSWORD}
+export MEMCACHIER_SERVERS="${MEMCACHED_SERVER}":"${MEMCACHED_PORT}"
+export MEMCACHIER_USERNAME="${MEMCACHED_USER}"
+export MEMCACHIER_PASSWORD="${SASL_PASSWORD}"
 
-pushd /var/www/html/auth
+pushd /var/www/html/auth || exit
 find . -maxdepth 1 -name "*.php" -type f -printf "%f\0" | xargs --max-procs=1 --max-args=1 --null -t php -l | tee -a /tmp/php_error.txt
-popd
+popd || exit
 php -l log.php | tee -a /tmp/php_error.txt
 
 count1=$(grep -c 'No syntax errors detected in' /tmp/php_error.txt)
 count2=$(< /tmp/php_error.txt wc -l)
 rm /tmp/php_error.txt
 
-if [ ${count1} -lt ${count2} ]; then
+if [ "${count1}" -lt "${count2}" ]; then
   curl -sS -X POST -H "Authorization: Bearer ${SLACK_TOKEN}" \
    -d "text=PHP_SYNTAX_ERROR" -d "channel=${SLACK_CHANNEL_01}" https://slack.com/api/chat.postMessage >/dev/null \
     && sleep 1s \
@@ -91,8 +91,8 @@ fi
 
 ls -lang /var/www/html/
 
-sed -i s/__RENDER_EXTERNAL_HOSTNAME__/${RENDER_EXTERNAL_HOSTNAME}/g /etc/apache2/sites-enabled/apache.conf
-sed -i s/__DEPLOY_DATETIME__/${DEPLOY_DATETIME}/ /etc/apache2/sites-enabled/apache.conf
+sed -i s/__RENDER_EXTERNAL_HOSTNAME__/"${RENDER_EXTERNAL_HOSTNAME}"/g /etc/apache2/sites-enabled/apache.conf
+sed -i s/__DEPLOY_DATETIME__/"${DEPLOY_DATETIME}"/ /etc/apache2/sites-enabled/apache.conf
 
 # version
 { \
