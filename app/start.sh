@@ -127,7 +127,7 @@ sleep 5s && curl -sS -u "${BASIC_USER}":"${BASIC_PASSWORD}" http://127.0.0.1/aut
 sleep 3m \
  && apt-get -qq update \
  && curl -X POST -sS -H "Authorization: Bearer ${UPSTASH_REDIS_REST_TOKEN}" \
-     -d "$(echo -n '["SET", "__KEY__", "__VALUE__"]' | sed "s/__KEY__/APT_RESULT_${RENDER_EXTERNAL_HOSTNAME}/" | sed "s/__VALUE__/$(date +'%Y-%m-%d %H:%M') $(apt-get -s upgrade | grep installed)/")" \
+     -d "$(echo -n '["SET", "__KEY__", "__VALUE__", "EX", "86400"]' | sed "s/__KEY__/APT_RESULT_${RENDER_EXTERNAL_HOSTNAME}/" | sed "s/__VALUE__/$(date +'%Y-%m-%d %H:%M') $(apt-get -s upgrade | grep installed)/")" \
      "${UPSTASH_REDIS_REST_URL}" &
 
 # apt upgrade info cached
@@ -140,7 +140,7 @@ while true; \
   done \
    && apt-get -qq update \
    && curl -X POST -sS -H "Authorization: Bearer ${UPSTASH_REDIS_REST_TOKEN}" \
-       -d "$(echo -n '["SET", "__KEY__", "__VALUE__"]' | sed "s/__KEY__/APT_RESULT_${RENDER_EXTERNAL_HOSTNAME}/" | sed "s/__VALUE__/$(date +'%Y-%m-%d %H:%M') $(apt-get -s upgrade | grep installed)/")" \
+       -d "$(echo -n '["SET", "__KEY__", "__VALUE__", "EX", "86400"]' | sed "s/__KEY__/APT_RESULT_${RENDER_EXTERNAL_HOSTNAME}/" | sed "s/__VALUE__/$(date +'%Y-%m-%d %H:%M') $(apt-get -s upgrade | grep installed)/")" \
        "${UPSTASH_REDIS_REST_URL}"
 done &
 
