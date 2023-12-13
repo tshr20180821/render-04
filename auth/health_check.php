@@ -55,7 +55,10 @@ __HEREDOC__;
         $file_size = filesize($_ENV['SQLITE_LOG_DB_FILE']) / 1024 / 1024;
     }
 
-    $apt_result = '';
+    $redis->connect(getenv('UPSTASH_REDIS_URL'), getenv('UPSTASH_REDIS_PORT'), 10, NULL, 0, 0, ['auth' => getenv('UPSTASH_REDIS_PASSWORD')]);
+    $apt_result = $redis->get('APT_RESULT_' . getenv('RENDER_EXTERNAL_HOSTNAME'))
+    $redis->close();
+
     $npm_result = '';
     $mc = new Memcached('pool');
     if (count($mc->getServerList()) == 0) {
@@ -64,22 +67,13 @@ __HEREDOC__;
         $mc->addServer($_ENV['MEMCACHED_SERVER'], $_ENV['MEMCACHED_PORT']);
         $mc->setOption(Memcached::OPT_SERVER_FAILURE_LIMIT, 255);
     }
-    foreach (['CHECK_APT', 'CHECK_NPM'] as &$key_name) {
-        if ($mc->get($key_name) !== false) {
-            $log->info($key_name . ' : memcached hit');
-            switch ($key_name) {
-                case 'CHECK_APT':
-                    $apt_result = trim($mc->get($key_name));
-                    break;
-                case 'CHECK_NPM':
-                    $npm_result = trim($mc->get($key_name));
-                    break;
-            }
-        } else {
-            $log->info($key_name . ' : memcached miss');
-            $rc = $mc->getResultCode();
-            $log->info('memcached results : ' . $rc);
-        }
+    if ($mc->get('CHECK_NPM') !== false) {
+        $log->info('CHECK_NPM : memcached hit');
+        $npm_result = trim($mc->get($key_name));
+    } else {
+        $log->info('CHECK_NPM : memcached miss');
+        $rc = $mc->getResultCode();
+        $log->info('memcached results : ' . $rc);
     }
     if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $res = $mc->getStats();
