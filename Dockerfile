@@ -99,6 +99,7 @@ RUN set -x \
  && time docker-php-ext-enable \
   apcu \
   memcached \
+  redis \
  && time docker-php-ext-configure zip --with-zip >/dev/null \
  && time docker-php-ext-install -j$(nproc) \
   mbstring \
