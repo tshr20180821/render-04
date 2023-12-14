@@ -2,6 +2,24 @@
 
 set -x
 
+send_slack_message() {
+  curl -sS -X POST -H "Authorization: Bearer ${SLACK_TOKEN}" \
+   -d "text=${1}" -d "channel=${SLACK_CHANNEL_01}" https://slack.com/api/chat.postMessage >/dev/null \
+    && sleep 1s \
+    && curl -sS -X POST -H "Authorization: Bearer ${SLACK_TOKEN}" \
+        -d "text=${1}" -d "channel=${SLACK_CHANNEL_02}" https://slack.com/api/chat.postMessage >/dev/null \
+    && sleep 1s
+}
+
+apt_result2cache() {
+  apt-get -qq update
+  curl -X POST -sS -H "Authorization: Bearer ${UPSTASH_REDIS_REST_TOKEN}" \
+   -d "$(echo -n '["SET", "__KEY__", "__VALUE__", "EX", "86400"]' | \
+    sed "s/__KEY__/APT_RESULT_${RENDER_EXTERNAL_HOSTNAME}/" | \
+    sed "s/__VALUE__/$(date +'%Y-%m-%d %H:%M') $(apt-get -s upgrade | grep installed)/")" \
+   "${UPSTASH_REDIS_REST_URL}"
+}
+
 dpkg -l
 
 cat /proc/version
@@ -78,12 +96,8 @@ count2=$(< wc -l /tmp/php_error.txt)
 rm /tmp/php_error.txt
 
 if [ "${count1}" -lt "${count2}" ]; then
-  curl -sS -X POST -H "Authorization: Bearer ${SLACK_TOKEN}" \
-   -d "text=PHP_SYNTAX_ERROR" -d "channel=${SLACK_CHANNEL_01}" https://slack.com/api/chat.postMessage >/dev/null \
-    && sleep 1s \
-    && curl -sS -X POST -H "Authorization: Bearer ${SLACK_TOKEN}" \
-        -d "text=PHP_SYNTAX_ERROR" -d "channel=${SLACK_CHANNEL_02}" https://slack.com/api/chat.postMessage >/dev/null \
-    && sleep 1s
+  send_slack_message 'PHP_SYNTAX_ERROR'
+  exit 1
 fi
 
 /usr/src/app/node_modules/.bin/eslint crond.js
@@ -109,12 +123,7 @@ sed -i s/__DEPLOY_DATETIME__/"${DEPLOY_DATETIME}"/ /etc/apache2/sites-enabled/ap
 
 VERSION=$(cat VERSION.txt)
 rm VERSION.txt
-
-curl -sS -X POST -H "Authorization: Bearer ${SLACK_TOKEN}" \
- -d "text=${VERSION}" -d "channel=${SLACK_CHANNEL_01}" https://slack.com/api/chat.postMessage >/dev/null \
-  && sleep 1s \
-  && curl -sS -X POST -H "Authorization: Bearer ${SLACK_TOKEN}" \
-      -d "text=${VERSION}" -d "channel=${SLACK_CHANNEL_02}" https://slack.com/api/chat.postMessage >/dev/null &
+send_slack_message "${VERSION}" &
 
 # apache start
 . /etc/apache2/envvars >/dev/null 2>&1
@@ -124,11 +133,7 @@ exec /usr/sbin/apache2 -DFOREGROUND &
 sleep 5s && curl -sS -u "${BASIC_USER}":"${BASIC_PASSWORD}" http://127.0.0.1/auth/preload.php &
 
 # apt upgrade info cached
-sleep 3m \
- && apt-get -qq update \
- && curl -X POST -sS -H "Authorization: Bearer ${UPSTASH_REDIS_REST_TOKEN}" \
-     -d "$(echo -n '["SET", "__KEY__", "__VALUE__", "EX", "86400"]' | sed "s/__KEY__/APT_RESULT_${RENDER_EXTERNAL_HOSTNAME}/" | sed "s/__VALUE__/$(date +'%Y-%m-%d %H:%M') $(apt-get -s upgrade | grep installed)/")" \
-     "${UPSTASH_REDIS_REST_URL}" &
+sleep 3m && apt_result2cache &
 
 # apt upgrade info cached
 while true; \
@@ -138,10 +143,7 @@ while true; \
      && ps aux \
      && curl -sS -A "health check" -u "${BASIC_USER}":"${BASIC_PASSWORD}" https://"${RENDER_EXTERNAL_HOSTNAME}"/; \
   done \
-   && apt-get -qq update \
-   && curl -X POST -sS -H "Authorization: Bearer ${UPSTASH_REDIS_REST_TOKEN}" \
-       -d "$(echo -n '["SET", "__KEY__", "__VALUE__", "EX", "86400"]' | sed "s/__KEY__/APT_RESULT_${RENDER_EXTERNAL_HOSTNAME}/" | sed "s/__VALUE__/$(date +'%Y-%m-%d %H:%M') $(apt-get -s upgrade | grep installed)/")" \
-       "${UPSTASH_REDIS_REST_URL}"
+   && apt_result2cache
 done &
 
 export START_TIME=$(date +%s%3N)
