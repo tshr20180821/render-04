@@ -136,8 +136,8 @@ sleep 5s && curl -sS -u "${BASIC_USER}":"${BASIC_PASSWORD}" http://127.0.0.1/aut
 sleep 3m && apt_result2cache &
 
 # apt upgrade info cached
-while true; \
-  do for i in {1..144}; do \
+while true; do \
+  for i in {1..144}; do \
     for j in {1..10}; do sleep 60s && echo "${j}"; done \
      && ss -anpt \
      && ps aux \
