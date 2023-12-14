@@ -55,6 +55,7 @@ __HEREDOC__;
         $file_size = filesize($_ENV['SQLITE_LOG_DB_FILE']) / 1024 / 1024;
     }
 
+    $redis = new Redis();
     // UPSTASH_REDIS_URL : tlsv1.2://...
     $redis->connect(getenv('UPSTASH_REDIS_URL'), getenv('UPSTASH_REDIS_PORT'), 10, NULL, 0, 0, ['auth' => getenv('UPSTASH_REDIS_PASSWORD')]);
     $apt_result = $redis->get('APT_RESULT_' . getenv('RENDER_EXTERNAL_HOSTNAME'));
