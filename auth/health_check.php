@@ -71,7 +71,7 @@ __HEREDOC__;
     }
     if ($mc->get('CHECK_NPM') !== false) {
         $log->info('CHECK_NPM : memcached hit');
-        $npm_result = trim($mc->get($key_name));
+        $npm_result = trim($mc->get('CHECK_NPM'));
     } else {
         $log->info('CHECK_NPM : memcached miss');
         $rc = $mc->getResultCode();
