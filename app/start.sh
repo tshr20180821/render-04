@@ -143,7 +143,7 @@ while true; \
      && ps aux \
      && curl -sS -A "health check" -u "${BASIC_USER}":"${BASIC_PASSWORD}" https://"${RENDER_EXTERNAL_HOSTNAME}"/; \
   done \
-   && apt_result2cache
+   && apt_result2cache \
 done &
 
 # for npm check delay
