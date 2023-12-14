@@ -57,7 +57,7 @@ __HEREDOC__;
 
     // UPSTASH_REDIS_URL : tlsv1.2://...
     $redis->connect(getenv('UPSTASH_REDIS_URL'), getenv('UPSTASH_REDIS_PORT'), 10, NULL, 0, 0, ['auth' => getenv('UPSTASH_REDIS_PASSWORD')]);
-    $apt_result = $redis->get('APT_RESULT_' . getenv('RENDER_EXTERNAL_HOSTNAME'))
+    $apt_result = $redis->get('APT_RESULT_' . getenv('RENDER_EXTERNAL_HOSTNAME'));
     $redis->close();
 
     $npm_result = '';
