@@ -63,7 +63,7 @@ RUN set -x \
  && curl -fsSL 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xA2166B8DE8BDC3367D1901C11EE2FF37CA8DA16B' | ./gpg --dearmor -o /etc/apt/keyrings/apt-fast.gpg \
  && echo "deb [signed-by=/etc/apt/keyrings/apt-fast.gpg] http://ppa.launchpad.net/apt-fast/stable/ubuntu jammy main" | tee /etc/apt/sources.list.d/apt-fast.list \
  && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | ./gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
- && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list \
+ && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_${NODE_MAJOR}.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list \
  && echo "deb http://deb.debian.org/debian ${DEBIAN_CODE_NAME}-backports main contrib non-free" | tee /etc/apt/sources.list.d/backports.list \
  && time apt-get -qq update \
  && time DEBIAN_FRONTEND=noninteractive apt-get -q install -y --no-install-recommends \
@@ -92,7 +92,6 @@ RUN set -x \
   apache2-data_${APACHE_VERSION}_all.deb \
   apache2-utils_${APACHE_VERSION}_amd64.deb \
   apache2_${APACHE_VERSION}_amd64.deb \
- && rm -f *.deb \
  && nproc=$(nproc) \
  && time MAKEFLAGS="-j ${nproc}" pecl install apcu >/dev/null \
  && time MAKEFLAGS="-j ${nproc}" pecl install memcached --enable-memcached-sasl >/dev/null \
@@ -150,7 +149,13 @@ RUN set -x \
   rewrite \
  && ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime \
  && time tar xf ./phpMyAdmin-${PHPMYADMIN_VERSION}-all-languages.tar.xz --strip-components=1 -C /var/www/html/phpmyadmin \
- && rm ./phpMyAdmin-${PHPMYADMIN_VERSION}-all-languages.tar.xz ./download.txt ./gpg ./package_list_before.txt ./package_list_after.txt \
+ && rm -f \
+  ./*.deb \
+  ./phpMyAdmin-${PHPMYADMIN_VERSION}-all-languages.tar.xz \
+  ./download.txt \
+  ./gpg \
+  ./package_list_before.txt \
+  ./package_list_after.txt \
  && chown www-data:www-data /var/www/html/phpmyadmin -R \
  && echo '<HTML />' >/var/www/html/index.html \
  && \
