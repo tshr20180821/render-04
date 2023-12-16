@@ -15,7 +15,6 @@ ENV NODE_ENV=production
 ENV NODE_MAJOR=20
 
 COPY ./php.ini ${PHP_INI_DIR}/
-COPY --chmod=644 .htpasswd /var/www/html/
 COPY ./apache.conf /etc/apache2/sites-enabled/
 COPY ./app/*.json ./
 
