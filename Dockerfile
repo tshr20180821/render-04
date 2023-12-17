@@ -145,6 +145,7 @@ RUN set -x \
  && a2dissite -q 000-default.conf \
  && a2enmod -q \
   authz_groupfile \
+  brotli \
   rewrite \
  && ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime \
  && time tar xf ./phpMyAdmin-${PHPMYADMIN_VERSION}-all-languages.tar.xz --strip-components=1 -C /var/www/html/phpmyadmin \
