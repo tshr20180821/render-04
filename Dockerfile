@@ -6,7 +6,7 @@ SHELL ["/bin/bash", "-c"]
 
 WORKDIR /usr/src/app
 
-ENV DEBIAN_CODE_NAME="bookworm"
+ENV DEBIAN_CODE_NAME=bookworm
 
 ENV CFLAGS="-O2 -march=native -mtune=native -fomit-frame-pointer"
 ENV CXXFLAGS="${CFLAGS}"
