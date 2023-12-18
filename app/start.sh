@@ -4,11 +4,11 @@ set -x
 
 send_slack_message() {
   curl -sS -X POST -H "Authorization: Bearer ${SLACK_TOKEN}" \
-   -d "text=${1}" -d "channel=${SLACK_CHANNEL_01}" https://slack.com/api/chat.postMessage >/dev/null \
-    && sleep 1s \
-    && curl -sS -X POST -H "Authorization: Bearer ${SLACK_TOKEN}" \
-        -d "text=${1}" -d "channel=${SLACK_CHANNEL_02}" https://slack.com/api/chat.postMessage >/dev/null \
-    && sleep 1s
+   -d "text=${1}" -d "channel=${SLACK_CHANNEL_01}" https://slack.com/api/chat.postMessage >/dev/null
+  sleep 1s
+  curl -sS -X POST -H "Authorization: Bearer ${SLACK_TOKEN}" \
+   -d "text=${1}" -d "channel=${SLACK_CHANNEL_02}" https://slack.com/api/chat.postMessage >/dev/null
+  sleep 1s
 }
 
 apt_result2cache() {
@@ -18,6 +18,12 @@ apt_result2cache() {
     sed "s/__KEY__/APT_RESULT_${RENDER_EXTERNAL_HOSTNAME}/" | \
     sed "s/__VALUE__/$(date +'%Y-%m-%d %H:%M') $(apt-get -s upgrade | grep installed)/")" \
    "${UPSTASH_REDIS_REST_URL}"
+}
+
+check_backports() {
+  echo "backports check ${1}" | tee -a "${2}"
+  curl -sS -m 10 "https://packages.debian.org/bookworm-backports/${1}" 2>>"${2}" | grep '<h1>' | grep "${1}" | cut -c 14- | tee -a "${2}"
+  sleep 2s
 }
 
 dpkg -l
@@ -134,8 +140,14 @@ exec /usr/sbin/apache2 -DFOREGROUND &
 # php opcache cache
 sleep 5s && curl -sS -u "${BASIC_USER}":"${BASIC_PASSWORD}" http://127.0.0.1/auth/preload.php &
 
+BACKPORTS_RESULT=/var/www/html/auth/backports_results.txt
+touch ${BACKPORTS_RESULT}
+chmod 644 ${BACKPORTS_RESULT}
+
 # apt upgrade info cached
-sleep 3m && apt_result2cache &
+sleep 3m \
+ && apt_result2cache \
+ && dpkg -l | tail -n +6 | awk '{print $2}' | awk -F: '{print $1}' | xargs -i check_backports {} ${BACKPORTS_RESULT} &
 
 # apt upgrade info cached
 while true; do \
