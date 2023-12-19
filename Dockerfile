@@ -126,7 +126,7 @@ RUN set -x \
  && dpkg -l >./package_list_before.txt \
  && time apt-mark auto '.*' >/dev/null \
  && time apt-mark manual "${savedAptMark}" >/dev/null \
- && rm -f /usr/local/bin/docker-php-* /usr/local/bin/apache2-foreground \
+ && rm -f /usr/local/bin/docker-php-* \
  && time find /usr/local -type f -executable -print \
  && time find /usr/local -type f -executable -exec ldd '{}' ';' | \
   awk '/=>/ { so = $(NF-1); if (index(so, "/usr/local/") == 1) { next }; gsub("^/(usr/)?", "", so); print so }' | \
