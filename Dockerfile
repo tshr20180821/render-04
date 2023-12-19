@@ -73,8 +73,9 @@ RUN set -x \
  && time apt-fast install -y --no-install-recommends \
   binutils \
   ca-certificates \
+  ca-certificates-java/${DEBIAN_CODE_NAME}-backports \
   default-jre-headless \
-  iproute2 \
+  iproute2/${DEBIAN_CODE_NAME}-backports \
   libmemcached-dev \
   libonig-dev \
   libsasl2-modules \
