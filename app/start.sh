@@ -140,7 +140,7 @@ chmod 644 ${BACKPORTS_RESULT}
 # apt upgrade info cached
 sleep 3m \
  && apt_result2cache \
- && dpkg -l | tail -n +6 | awk '{print $2}' | awk -F: '{print $1}' | xargs -i ./check_backports.sh {} ${BACKPORTS_RESULT} &
+ && dpkg -l | tail -n +6 | awk '{print $2}' | awk -F: '{print $1}' | xargs -I {} ./check_backports.sh {} ${BACKPORTS_RESULT} &
 
 # apt upgrade info cached
 while true; do \
