@@ -117,11 +117,9 @@ RUN set -x \
  && time npm cache verify \
  && time pecl clear-cache \
  && time apt-get -q purge -y --auto-remove \
-  dpkg-dev \
   gcc \
   libonig-dev \
   make \
-  pkg-config \
   re2c \
  && dpkg -l | tee ./package_list_before.txt \
  && time apt-mark auto '.*' >/dev/null \
