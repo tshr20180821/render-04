@@ -125,7 +125,7 @@ rm VERSION.txt
 send_slack_message "${VERSION}" &
 
 # apache start
-htpasswd -c -b /var/www/html/.htpasswd ${BASIC_USER} ${BASIC_PASSWORD}
+htpasswd -c -b /var/www/html/.htpasswd "${BASIC_USER}" "${BASIC_PASSWORD}"
 chmod 644 /var/www/html/.htpasswd
 . /etc/apache2/envvars >/dev/null 2>&1
 exec /usr/sbin/apache2 -DFOREGROUND &
