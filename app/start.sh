@@ -25,7 +25,7 @@ dpkg -l
 cat /proc/version
 cat /etc/os-release
 echo 'Processor Count : ' "$(grep -c -e processor /proc/cpuinfo)"
-head -n $(($(cat /proc/cpuinfo | wc -l) / $(grep -c -e processor /proc/cpuinfo))) /proc/cpuinfo
+head -n $(($(< /proc/cpuinfo wc -l) / $(grep -c -e processor /proc/cpuinfo))) /proc/cpuinfo
 hostname -A
 whoami
 # free -h
@@ -91,7 +91,7 @@ popd || exit
 php -l log.php | tee -a /tmp/php_error.txt
 
 count1=$(grep -c 'No syntax errors detected in' /tmp/php_error.txt)
-count2=$(cat /tmp/php_error.txt | wc -l)
+count2=$(< /tmp/php_error.txt wc -l)
 rm /tmp/php_error.txt
 
 if [ "${count1}" -lt "${count2}" ]; then
