@@ -112,6 +112,7 @@ RUN set -x \
  && time npm audit fix \
  && time apt-get upgrade -y --no-install-recommends \
  && time npm cache clean --force \
+ && time npm cache verify \
  && time pecl clear-cache \
  && time apt-get -q purge -y --auto-remove \
   dpkg-dev \
