@@ -123,7 +123,7 @@ RUN set -x \
   make \
   pkg-config \
   re2c \
- && dpkg -l >./package_list_before.txt \
+ && dpkg -l | tee ./package_list_before.txt \
  && time apt-mark auto '.*' >/dev/null \
  && time apt-mark manual "${savedAptMark}" >/dev/null \
  && time find /usr/local -type f -executable -print \
