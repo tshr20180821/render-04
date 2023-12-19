@@ -67,7 +67,7 @@ RUN set -x \
  && time apt-get -qq update \
  && time DEBIAN_FRONTEND=noninteractive apt-get -q install -y --no-install-recommends \
   apt-fast \
-  curl/${DEBIAN_CODE_NAME}-backports \
+  curl/"${DEBIAN_CODE_NAME}"-backports \
  && time aria2c -i download.txt \
  && ls -lang \
  && echo "MIRRORS=( 'http://deb.debian.org/debian, http://cdn-fastly.deb.debian.org/debian, http://httpredir.debian.org/debian' )" >/etc/apt-fast.conf \
@@ -75,7 +75,7 @@ RUN set -x \
   binutils \
   ca-certificates \
   default-jre-headless \
-  iproute2/${DEBIAN_CODE_NAME}-backports \
+  iproute2/"${DEBIAN_CODE_NAME}"-backports \
   libmemcached-dev \
   libonig-dev \
   libsasl2-modules \
@@ -88,10 +88,10 @@ RUN set -x \
   tzdata \
   zlib1g-dev \
  && time dpkg -i \
-  apache2-bin_${APACHE_VERSION}_amd64.deb \
-  apache2-data_${APACHE_VERSION}_all.deb \
-  apache2-utils_${APACHE_VERSION}_amd64.deb \
-  apache2_${APACHE_VERSION}_amd64.deb \
+  apache2-bin_"${APACHE_VERSION}"_amd64.deb \
+  apache2-data_"${APACHE_VERSION}"_all.deb \
+  apache2-utils_"${APACHE_VERSION}"_amd64.deb \
+  apache2_"${APACHE_VERSION}"_amd64.deb \
  && nproc=$(nproc) \
  && time MAKEFLAGS="-j ${nproc}" pecl install apcu >/dev/null \
  && time MAKEFLAGS="-j ${nproc}" pecl install memcached --enable-memcached-sasl >/dev/null \
@@ -101,12 +101,14 @@ RUN set -x \
   memcached \
   redis \
  && time docker-php-ext-configure zip --with-zip >/dev/null \
- && time docker-php-ext-install -j${nproc} \
+ && time docker-php-ext-install -j"${nproc}" \
   mbstring \
   mysqli \
   opcache \
   pdo_mysql \
   >/dev/null \
+ && time find "$(php-config --extension-dir)" -name '*.so' -type f -print \
+ && time find "$(php-config --extension-dir)" -name '*.so' -type f -exec sh -c 'strip --strip-all' -- {} \; \
  && time npm install \
  && time npm update -g \
  && time npm audit fix \
@@ -123,7 +125,7 @@ RUN set -x \
   re2c \
  && dpkg -l >./package_list_before.txt \
  && time apt-mark auto '.*' >/dev/null \
- && time apt-mark manual ${savedAptMark} >/dev/null \
+ && time apt-mark manual"${savedAptMark}" >/dev/null \
  && time find /usr/local -type f -executable -print \
  && time find /usr/local -type f -executable -exec ldd '{}' ';' | \
   awk '/=>/ { so = $(NF-1); if (index(so, "/usr/local/") == 1) { next }; gsub("^/(usr/)?", "", so); print so }' | \
@@ -150,14 +152,12 @@ RUN set -x \
   brotli \
   rewrite \
  && ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime \
- && time tar xf ./phpMyAdmin-${PHPMYADMIN_VERSION}-all-languages.tar.xz --strip-components=1 -C /var/www/html/phpmyadmin \
+ && time tar xf ./phpMyAdmin-"${PHPMYADMIN_VERSION}"-all-languages.tar.xz --strip-components=1 -C /var/www/html/phpmyadmin \
  && rm -f \
   ./*.deb \
-  ./phpMyAdmin-${PHPMYADMIN_VERSION}-all-languages.tar.xz \
-  ./download.txt \
+  ./phpMyAdmin-"${PHPMYADMIN_VERSION}"-all-languages.tar.xz \
+  ./*.txt \
   ./gpg \
-  ./package_list_before.txt \
-  ./package_list_after.txt \
  && chown www-data:www-data /var/www/html/phpmyadmin -R \
  && echo '<HTML />' >/var/www/html/index.html \
  && \
