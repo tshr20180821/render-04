@@ -145,7 +145,7 @@ sleep 3m \
 # apt upgrade info cached
 while true; do \
   for i in {1..144}; do \
-    for j in {1..10}; do sleep 60s && echo "${j}"; done \
+    for j in {1..10}; do sleep 60s && echo "${i} ${j}"; done \
      && ss -anpt \
      && ps aux \
      && curl -sS -A "health check" -u "${BASIC_USER}":"${BASIC_PASSWORD}" https://"${RENDER_EXTERNAL_HOSTNAME}"/; \
