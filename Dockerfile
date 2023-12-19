@@ -69,11 +69,11 @@ RUN set -x \
   apt-fast \
   curl/${DEBIAN_CODE_NAME}-backports \
  && time aria2c -i download.txt \
+ && ls -lang \
  && echo "MIRRORS=( 'http://deb.debian.org/debian, http://cdn-fastly.deb.debian.org/debian, http://httpredir.debian.org/debian' )" >/etc/apt-fast.conf \
  && time apt-fast install -y --no-install-recommends \
   binutils \
   ca-certificates \
-  ca-certificates-java/${DEBIAN_CODE_NAME}-backports \
   default-jre-headless \
   iproute2/${DEBIAN_CODE_NAME}-backports \
   libmemcached-dev \
