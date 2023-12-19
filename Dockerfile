@@ -120,24 +120,9 @@ RUN set -x \
   gcc \
   libonig-dev \
   make \
+  pkg-config \
   re2c \
  && dpkg -l | tee ./package_list_before.txt \
- && time apt-mark auto '.*' >/dev/null \
- && time apt-mark manual "${savedAptMark}" >/dev/null \
- && time find /usr/local -type f -executable -print \
- && time find /usr/local -type f -executable -exec ldd '{}' ';' | \
-  awk '/=>/ { so = $(NF-1); if (index(so, "/usr/local/") == 1) { next }; gsub("^/(usr/)?", "", so); print so }' | \
-  sort -u | xargs -r dpkg-query --search | cut -d: -f1 | sort -u | xargs -r apt-mark manual >/dev/null 2>&1 \
- && apt-mark manual \
-  default-jre-headless \
-  iproute2 \
-  libmemcached-dev \
-  libsasl2-modules \
-  memcached \
-  nodejs \
-  sasl2-bin \
- && time apt-mark showmanual \
- && time DEBIAN_FRONTEND=noninteractive apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
  && dpkg -l >./package_list_after.txt \
  && diff -u ./package_list_before.txt ./package_list_after.txt | cat \
  && time apt-get clean \
@@ -163,6 +148,23 @@ RUN set -x \
    echo 'User-agent: *'; \
    echo 'Disallow: /'; \
   } >/var/www/html/robots.txt
+
+# && time apt-mark auto '.*' >/dev/null \
+# && time apt-mark manual "${savedAptMark}" >/dev/null \
+# && time find /usr/local -type f -executable -print \
+# && time find /usr/local -type f -executable -exec ldd '{}' ';' | \
+#  awk '/=>/ { so = $(NF-1); if (index(so, "/usr/local/") == 1) { next }; gsub("^/(usr/)?", "", so); print so }' | \
+#  sort -u | xargs -r dpkg-query --search | cut -d: -f1 | sort -u | xargs -r apt-mark manual >/dev/null 2>&1 \
+# && apt-mark manual \
+#  default-jre-headless \
+#  iproute2 \
+#  libmemcached-dev \
+#  libsasl2-modules \
+#  memcached \
+#  nodejs \
+#  sasl2-bin \
+# && time apt-mark showmanual \
+# && time DEBIAN_FRONTEND=noninteractive apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
 
 COPY ./config.inc.php /var/www/html/phpmyadmin/
 COPY ./Dockerfile ./app/*.js ./app/*.php ./
