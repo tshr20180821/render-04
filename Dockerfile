@@ -136,7 +136,7 @@ RUN set -x \
   nodejs \
   sasl2-bin \
  && time apt-mark showmanual \
- && time apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
+ && time DEBIAN_FRONTEND=noninteractive apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
  && dpkg -l >./package_list_after.txt \
  && diff -u ./package_list_before.txt ./package_list_after.txt | cat \
  && time apt-get clean \
