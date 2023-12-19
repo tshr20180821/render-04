@@ -108,7 +108,7 @@ RUN set -x \
   pdo_mysql \
   >/dev/null \
  && time find "$(php-config --extension-dir)" -name '*.so' -type f -print \
- && time find "$(php-config --extension-dir)" -name '*.so' -type f -exec sh -c 'strip --strip-all' -- {} \; \
+ && time find "$(php-config --extension-dir)" -name '*.so' -type f -exec strip --strip-all {} ';' \
  && time npm install \
  && time npm update -g \
  && time npm audit fix \
