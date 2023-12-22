@@ -56,7 +56,7 @@ RUN set -x \
    echo "http://mirror.coganng.com/debian/pool/main/a/apache2/apache2-bin_${APACHE_VERSION}_amd64.deb"; \
    echo "http://mirror.coganng.com/debian/pool/main/a/apache2/apache2-data_${APACHE_VERSION}_all.deb"; \
    echo "http://mirror.coganng.com/debian/pool/main/a/apache2/apache2-utils_${APACHE_VERSION}_amd64.deb"; \
-  } >download.txt \
+  } >./download.txt \
  && curl -sSO https://raw.githubusercontent.com/tshr20180821/render-07/main/app/gpg \
  && chmod +x ./gpg \
  && mkdir -p /etc/apt/keyrings \
@@ -69,7 +69,7 @@ RUN set -x \
  && time DEBIAN_FRONTEND=noninteractive apt-get -q install -y --no-install-recommends \
   apt-fast \
   curl/"${DEBIAN_CODE_NAME}"-backports \
- && time aria2c -i download.txt \
+ && time aria2c -i ./download.txt \
  && ls -lang \
  && echo "MIRRORS=( 'http://deb.debian.org/debian, http://cdn-fastly.deb.debian.org/debian, http://httpredir.debian.org/debian' )" >/etc/apt-fast.conf \
  && time apt-fast install -y --no-install-recommends \
@@ -160,7 +160,9 @@ RUN set -x \
  && rm -f \
   ./*.deb \
   ./phpMyAdmin-"${PHPMYADMIN_VERSION}"-all-languages.tar.xz \
-  ./*.txt \
+  ./download.txt \
+  ./package_list_after.txt \
+  ./package_list_before.txt \
   ./gpg \
  && chown www-data:www-data /var/www/html/auth -R \
  && chown www-data:www-data /var/www/html/phpmyadmin -R \
