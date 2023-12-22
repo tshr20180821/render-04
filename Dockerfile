@@ -43,6 +43,7 @@ ENV SQLITE_JDBC_VERSION="3.44.1.0"
 # tzdata : ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
 # zlib1g-dev : pecl memcached
 RUN set -x \
+ && date +'%Y-%m-%d %H:%M:%S' >./BuildDateTime.txt \
  && savedAptMark="$(apt-mark showmanual)" \
  && \
   { \
@@ -161,6 +162,7 @@ RUN set -x \
   ./phpMyAdmin-"${PHPMYADMIN_VERSION}"-all-languages.tar.xz \
   ./*.txt \
   ./gpg \
+ && chown www-data:www-data /var/www/html/auth -R \
  && chown www-data:www-data /var/www/html/phpmyadmin -R \
  && echo '<HTML />' >/var/www/html/index.html \
  && \

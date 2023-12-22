@@ -36,7 +36,7 @@ $atom = <<< __HEREDOC__
   </author>
   <id>tag:__FQDN__</id>
   <entry>
-    <title>__DEPLOY_DATETIME__ Deployed</title>
+    <title>__BUILD_DATETIME__ Build __DEPLOY_DATETIME__ Deployed</title>
     <link href="http://example.org/"/>
     <id>tag:__ID__</id>
     <updated>__UPDATED__</updated>
@@ -95,6 +95,7 @@ __HEREDOC__;
 
     $tmp = str_split($_ENV['DEPLOY_DATETIME'], 2);
     $atom = str_replace('__DEPLOY_DATETIME__', $tmp[0] . $tmp[1] . '-' . $tmp[2] . '-' . $tmp[3] . ' ' . $tmp[4] . ':' . $tmp[5] . ':' . $tmp[6], $atom);
+    $atom = str_replace('__BUILD_DATETIME__', file_get_contents('/usr/src/app/BuildDateTime.txt'), $atom);
     $atom = str_replace('__ID__', $_ENV['RENDER_EXTERNAL_HOSTNAME'] . '-' . uniqid(), $atom);
     $atom = str_replace('__FQDN__', $_ENV['RENDER_EXTERNAL_HOSTNAME'], $atom);
     $atom = str_replace('__UPDATED__', date('Y-m-d') . 'T' . date('H:i:s') . '+09', $atom);
