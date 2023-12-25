@@ -43,7 +43,7 @@ ENV SQLITE_JDBC_VERSION="3.44.1.0"
 # tzdata : ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
 # zlib1g-dev : pecl memcached
 RUN set -x \
- && date '9 hours ago' +'%Y-%m-%d %H:%M:%S' >./BuildDateTime.txt \
+ && date -d '9 hours ago' +'%Y-%m-%d %H:%M:%S' >./BuildDateTime.txt \
  && savedAptMark="$(apt-mark showmanual)" \
  && \
   { \
