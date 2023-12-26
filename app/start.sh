@@ -18,6 +18,7 @@ apt_result2cache() {
     sed "s/__KEY__/APT_RESULT_${RENDER_EXTERNAL_HOSTNAME}/" | \
     sed "s/__VALUE__/$(date +'%Y-%m-%d %H:%M') $(apt-get -s upgrade | grep installed)/")" \
    "${UPSTASH_REDIS_REST_URL}"
+  apt-get -s upgrade >/var/www/html/auth/apt_dry_run_result.txt
 }
 
 dpkg -l
