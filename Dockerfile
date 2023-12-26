@@ -95,10 +95,12 @@ RUN set -x \
   apache2_"${APACHE_VERSION}"_amd64.deb \
  && nproc=$(nproc) \
  && time MAKEFLAGS="-j ${nproc}" pecl install apcu >/dev/null \
+ && time MAKEFLAGS="-j ${nproc}" pecl install igbinary >/dev/null \
  && time MAKEFLAGS="-j ${nproc}" pecl install memcached --enable-memcached-sasl >/dev/null \
  && time MAKEFLAGS="-j ${nproc}" pecl install redis >/dev/null \
  && time docker-php-ext-enable \
   apcu \
+  igbinary \
   memcached \
   redis \
  && time docker-php-ext-configure zip --with-zip >/dev/null \
