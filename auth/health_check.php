@@ -85,7 +85,7 @@ __HEREDOC__;
 
     $docker_hub_updated = '';
     if (apcu_exists('last_updated_' . $_ENV['DOCKER_HUB_PHP_TAG'])) {
-        $docker_hub_updated = apcu_fetch('last_updated_' . $_ENV['DOCKER_HUB_PHP_TAG']);
+        $docker_hub_updated = igbinary_unserialize(apcu_fetch('last_updated_' . $_ENV['DOCKER_HUB_PHP_TAG']));
     }
 
     $sqlite_version = '';
