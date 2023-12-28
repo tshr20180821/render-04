@@ -30,7 +30,7 @@ function get_dockerhub_repository_information()
             if ($data_tag['name'] == $_ENV['DOCKER_HUB_PHP_TAG']) {
                 $log->info('tag_name : ' . $data_tag['name'] . ' ' . $data_tag['last_updated']);
                 // $log->info($data_tag['last_updated']);
-                apcu_store('last_updated_' . $_ENV['DOCKER_HUB_PHP_TAG'], date('Y-m-d H:i') . ' ' . $data_tag['last_updated']);
+                apcu_store('last_updated_' . $_ENV['DOCKER_HUB_PHP_TAG'], igbinary_serialize(date('Y-m-d H:i') . ' ' . $data_tag['last_updated']));
                 break 2;
             }
         }
