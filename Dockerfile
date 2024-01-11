@@ -52,10 +52,6 @@ RUN set -x \
    echo "https://raw.githubusercontent.com/tshr20180821/render-07/main/app/slf4j-api-2.0.9.jar"; \
    echo "https://raw.githubusercontent.com/tshr20180821/render-07/main/app/slf4j-nop-2.0.9.jar"; \
    echo "https://raw.githubusercontent.com/tshr20180821/render-07/main/app/LogOperation.jar"; \
-   echo "http://mirror.coganng.com/debian/pool/main/a/apache2/apache2_${APACHE_VERSION}_amd64.deb"; \
-   echo "http://mirror.coganng.com/debian/pool/main/a/apache2/apache2-bin_${APACHE_VERSION}_amd64.deb"; \
-   echo "http://mirror.coganng.com/debian/pool/main/a/apache2/apache2-data_${APACHE_VERSION}_all.deb"; \
-   echo "http://mirror.coganng.com/debian/pool/main/a/apache2/apache2-utils_${APACHE_VERSION}_amd64.deb"; \
   } >./download.txt \
  && curl -sSO https://raw.githubusercontent.com/tshr20180821/render-07/main/app/gpg \
  && chmod +x ./gpg \
@@ -88,11 +84,6 @@ RUN set -x \
   sasl2-bin \
   tzdata \
   zlib1g-dev \
- && time dpkg -i \
-  apache2-bin_"${APACHE_VERSION}"_amd64.deb \
-  apache2-data_"${APACHE_VERSION}"_all.deb \
-  apache2-utils_"${APACHE_VERSION}"_amd64.deb \
-  apache2_"${APACHE_VERSION}"_amd64.deb \
  && nproc=$(nproc) \
  && time MAKEFLAGS="-j ${nproc}" pecl install apcu >/dev/null \
  && time MAKEFLAGS="-j ${nproc}" pecl install igbinary >/dev/null \
