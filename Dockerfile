@@ -18,7 +18,6 @@ COPY ./php.ini ${PHP_INI_DIR}/
 COPY ./apache.conf /etc/apache2/sites-enabled/
 COPY ./app/*.json ./
 
-ENV APACHE_VERSION="2.4.58-1"
 ENV PHPMYADMIN_VERSION="5.2.1"
 ENV SQLITE_JDBC_VERSION="3.44.1.0"
 
