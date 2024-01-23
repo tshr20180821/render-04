@@ -64,7 +64,8 @@ RUN set -x \
  && time DEBIAN_FRONTEND=noninteractive apt-get -q install -y --no-install-recommends \
   apt-fast \
   curl/"${DEBIAN_CODE_NAME}"-backports \
- && time aria2c -i ./download.txt \
+ && nproc=$(nproc) \
+ && time aria2c -j ${nproc} -i ./download.txt \
  && ls -lang \
  && echo "MIRRORS=( 'http://deb.debian.org/debian, http://cdn-fastly.deb.debian.org/debian, http://httpredir.debian.org/debian' )" >/etc/apt-fast.conf \
  && time apt-fast install -y --no-install-recommends \
@@ -83,7 +84,6 @@ RUN set -x \
   sasl2-bin \
   tzdata \
   zlib1g-dev \
- && nproc=$(nproc) \
  && time MAKEFLAGS="-j ${nproc}" pecl install apcu >/dev/null \
  && time MAKEFLAGS="-j ${nproc}" pecl install igbinary >/dev/null \
  && time MAKEFLAGS="-j ${nproc}" pecl install memcached --enable-memcached-sasl >/dev/null \
