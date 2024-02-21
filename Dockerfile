@@ -67,7 +67,7 @@ RUN set -x \
  && nproc=$(nproc) \
  && time aria2c -j ${nproc} -x ${nproc} -i ./download.txt \
  && ls -lang \
- && echo "MIRRORS=( 'http://deb.debian.org/debian, http://cdn-fastly.deb.debian.org/debian, http://httpredir.debian.org/debian' )" >/etc/apt-fast.conf \
+ && echo "MIRRORS=('http://deb.debian.org/debian','http://ftp.debian.org/debian,http://ftp2.de.debian.org/debian,http://ftp.de.debian.org/debian,ftp://ftp.uni-kl.de/debian')" >/etc/apt-fast.conf \
  && time apt-fast install -y --no-install-recommends \
   binutils \
   ca-certificates \
