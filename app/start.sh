@@ -149,7 +149,7 @@ while true; do \
     for j in {1..10}; do sleep 60s && echo "${i} ${j}"; done \
      && ss -anpt \
      && ps aux \
-     && curl -sS -A "health check" -u "${BASIC_USER}":"${BASIC_PASSWORD}" https://"${RENDER_EXTERNAL_HOSTNAME}"/; \
+     && curl -sS -A "health check" -u "${BASIC_USER}":"${BASIC_PASSWORD}" https://"${RENDER_EXTERNAL_HOSTNAME}"/?$(date +%s); \
   done \
    && apt_result2cache; \
 done &
