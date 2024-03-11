@@ -75,6 +75,7 @@ RUN set -x \
   iproute2/"${DEBIAN_CODE_NAME}"-backports \
   libmemcached-dev \
   libonig-dev \
+  libpq-dev \
   libsasl2-modules \
   libsqlite3-0 \
   libssl-dev \
