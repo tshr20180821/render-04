@@ -1,0 +1,29 @@
+CREATE TABLE m_server (
+ server_name varchar(128) NOT NULL,
+ processed_minute_one_digit int NOT NULL,
+ update_time timestamp NOT NULL,
+ PRIMARY KEY (server_name,processed_minute_one_digit)
+);
+
+INSERT INTO m_server VALUES ('', 0, NOW() - interval '5 minutes');
+INSERT INTO m_server VALUES ('', 1, NOW() - interval '5 minutes');
+INSERT INTO m_server VALUES ('', 2, NOW() - interval '5 minutes');
+INSERT INTO m_server VALUES ('', 3, NOW() - interval '5 minutes');
+INSERT INTO m_server VALUES ('', 4, NOW() - interval '5 minutes');
+INSERT INTO m_server VALUES ('', 5, NOW() - interval '5 minutes');
+INSERT INTO m_server VALUES ('', 6, NOW() - interval '5 minutes');
+INSERT INTO m_server VALUES ('', 7, NOW() - interval '5 minutes');
+INSERT INTO m_server VALUES ('', 8, NOW() - interval '5 minutes');
+INSERT INTO m_server VALUES ('', 9, NOW() - interval '5 minutes');
+
+CREATE TABLE m_cron (
+ id SERIAL PRIMARY KEY,
+ schedule varchar(128) NOT NULL,
+ uri varchar(256) NOT NULL,
+ method varchar(10) NOT NULL,
+ authentication varchar(128),
+ headers varchar(128),
+ post_data varchar(512),
+ enable boolean NOT NULL,
+ memo text
+);
