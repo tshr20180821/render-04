@@ -6,7 +6,7 @@ SHELL ["/bin/bash", "-c"]
 
 WORKDIR /usr/src/app
 
-ENV DEBIAN_CODE_NAME=bookworm
+ENV DEBIAN_FRONTEND=noninteractive
 
 ENV CFLAGS="-O2 -march=native -mtune=native -fomit-frame-pointer"
 ENV CXXFLAGS="${CFLAGS}"
@@ -42,6 +42,8 @@ ENV SQLITE_JDBC_VERSION="3.45.0.0"
 # tzdata : ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
 # zlib1g-dev : pecl memcached
 RUN set -x \
+ && DEBIAN_CODE_NAME=$(cat /etc/os-release | grep VERSION_CODENAME) \
+ && DEBIAN_CODE_NAME=${DEBIAN_CODE_NAME:17} \
  && date -d '+9 hours' +'%Y-%m-%d %H:%M:%S' >./BuildDateTime.txt \
  && savedAptMark="$(apt-mark showmanual)" \
  && \
@@ -61,9 +63,11 @@ RUN set -x \
  && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_${NODE_MAJOR}.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list \
  && echo "deb http://deb.debian.org/debian ${DEBIAN_CODE_NAME}-backports main contrib non-free" | tee /etc/apt/sources.list.d/backports.list \
  && time apt-get -qq update \
- && time DEBIAN_FRONTEND=noninteractive apt-get -q install -y --no-install-recommends \
+ && time apt-get -q install -y --no-install-recommends \
   apt-fast \
-  curl/"${DEBIAN_CODE_NAME}"-backports \
+  curl \
+ && apt-get -q -y --no-install-recommends install \
+  curl/"${DEBIAN_CODE_NAME}"-backports || true \
  && nproc=$(nproc) \
  && time aria2c -j ${nproc} -x ${nproc} -i ./download.txt \
  && ls -lang \
@@ -72,7 +76,7 @@ RUN set -x \
   binutils \
   ca-certificates \
   default-jre-headless \
-  iproute2/"${DEBIAN_CODE_NAME}"-backports \
+  iproute2 \
   libmemcached-dev \
   libonig-dev \
   libpq-dev \
@@ -85,6 +89,8 @@ RUN set -x \
   sasl2-bin \
   tzdata \
   zlib1g-dev \
+ && apt-get -q -y --no-install-recommends install \
+  iproute2/"${DEBIAN_CODE_NAME}"-backports || true \
  && time MAKEFLAGS="-j ${nproc}" pecl install apcu >/dev/null \
  && time MAKEFLAGS="-j ${nproc}" pecl install igbinary >/dev/null \
  && time MAKEFLAGS="-j ${nproc}" pecl install memcached --enable-memcached-sasl >/dev/null \
