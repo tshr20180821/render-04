@@ -107,6 +107,7 @@ RUN set -x \
   opcache \
   pdo_mysql \
   pdo_pgsql \
+  pgsql \
   >/dev/null \
  && time find "$(php-config --extension-dir)" -name '*.so' -type f -print \
  && time find "$(php-config --extension-dir)" -name '*.so' -type f -exec strip --strip-all {} ';' \
