@@ -12,7 +12,7 @@ ENV CFLAGS="-O2 -march=native -mtune=native -fomit-frame-pointer"
 ENV CXXFLAGS="${CFLAGS}"
 ENV LDFLAGS="-fuse-ld=gold"
 ENV NODE_ENV=production
-ENV NODE_MAJOR=20
+ENV NODE_MAJOR=22
 
 COPY ./php.ini ${PHP_INI_DIR}/
 COPY ./apache.conf /etc/apache2/sites-enabled/
