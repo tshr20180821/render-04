@@ -19,7 +19,7 @@ COPY ./apache.conf /etc/apache2/sites-enabled/
 COPY ./app/*.json ./
 
 ENV PHPMYADMIN_VERSION="5.2.1"
-ENV SQLITE_JDBC_VERSION="3.47.2.0"
+ENV SQLITE_JDBC_VERSION="3.49.0.0"
 
 # https://files.phpmyadmin.net/phpMyAdmin/${PHPMYADMIN_VERSION}/phpMyAdmin-${PHPMYADMIN_VERSION}-all-languages.tar.xz
 # https://repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.9/slf4j-api-2.0.9.jar
